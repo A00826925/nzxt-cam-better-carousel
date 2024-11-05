@@ -126,7 +126,7 @@ function createHourMarkers() {
     const hourMarkersContainer = document.querySelector('.hour-markers');
     hourMarkersContainer.innerHTML = ''; // Clear existing markers
     const totalHours = 12; // Total hours on a clock
-    const radius = 140; // Decrease this value to move the markers closer to the center
+    const radius = 240; // Decrease this value to move the markers closer to the center
 
     for (let i = 0; i < totalHours; i++) {
         const marker = document.createElement('div');

@@ -103,14 +103,14 @@ h2 {
     align-items: center;
     justify-content: center;
     z-index: 2;
-    background-color: rgba(0, 0, 0, 0.3); /* Optional for semi-transparency */
+    background-color: rgba(0, 0, 0, 0.6); /* Optional for semi-transparency */
 }
 
 .watchface {
     position: relative;
-    width: 300px; /* Increase size to make clock larger */
-    height: 300px;
-    border: 8px solid #ffffff;
+    width: 500px; /* Increase size to make clock larger */
+    height: 500px;
+    border: 15px solid #ffffff;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -136,21 +136,21 @@ h2 {
 }
 
 .hour-hand {
-    width: 80px; /* Length of hour hand */
-    height: 6px; /* Thickness of hour hand */
+    width: 120px; /* Length of hour hand */
+    height: 15px; /* Thickness of hour hand */
     border-radius: 20%; /* Make it a circle */
     background-color: #fff;
 }
 
 .minute-hand {
-    width: 100px; /* Length of minute hand */
-    height: 4px; /* Thickness of minute hand */
+    width: 180px; /* Length of minute hand */
+    height: 7px; /* Thickness of minute hand */
     border-radius: 20%; /* Make it a circle */
     background-color: #fff;
 }
 
 .second-hand {
-    width: 120px; /* Length of second hand */
+    width: 200px; /* Length of second hand */
     height: 2px; /* Thickness of second hand */
     background-color: red;
 }
@@ -166,8 +166,8 @@ h2 {
 
 .hour-marker {
     position: absolute;
-    width: 6px; /* Size of the dots */
-    height: 6px; /* Size of the dots */
+    width: 9px; /* Size of the dots */
+    height: 9px; /* Size of the dots */
     background-color: white; /* Color of the dots */
     border-radius: 50%; /* Make them circular */
     transform: translate(-50%, -50%); /* Center the dots on their position */
