@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=640, height=640, initial-scale=1.0">
+    <title>NZXT Kraken Display</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="media-container">
+        <img id="media" src="{{ url_for('static', filename='images/media1.jpg') }}" alt="Media">
+    </div>
+
+    <div class="temp-overlay">
+    <h1 class="title">NZXT</h1>
+        <div class="temp-container">
+            <div class="cpu-temp">
+                
+                <div id="cpu-temperature" class="temperature">
+                    N/A
+                </div>
+                <h2>CPU</h2>
+            </div>
+            <div class="gpu-temp">
+                
+                <div id="gpu-temperature" class="temperature">
+                    N/A
+                </div>
+                <h2>GPU</h2>
+            </div>
+            
+        </div>
+    </div>
+
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

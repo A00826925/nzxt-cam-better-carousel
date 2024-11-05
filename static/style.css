@@ -1,0 +1,90 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 640px;
+    height: 640px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000;
+}
+
+.media-container {
+    width: 640px;
+    height: 640px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.media-container img, .media-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: object-position 0.5s ease;
+    position: absolute;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.media-container {
+    width: 640px;
+    height: 640px;
+    position: relative;
+    overflow: hidden;
+}
+
+.temp-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center horizontally */
+    justify-content: top; /* Center vertically */
+    background-color: rgba(0, 0, 0, 0.2); /* Semi-transparent background for readability */
+    color: rgba(255, 255, 255, 0.8); /* Text color */
+    font-family: 'Poppins', sans-serif; /* Use Poppins font */
+    text-align: center; /* Center text alignment */
+}
+
+.title {
+    margin-top: 115px;
+    margin-bottom: 30px; /* Space between title and temperature sections */
+    font-size: 60px; /* Title font size */
+}
+
+.temp-container {
+    display: flex;
+    justify-content: center; /* Space between CPU and GPU sections */
+    width: 90%; /* Set the width to 75% */
+    margin: auto; /* Center the container horizontally */
+}
+
+.cpu-temp, .gpu-temp {
+    flex: 1; /* Equal space for CPU and GPU */
+    
+}
+
+h2 {
+    font-size: 50px; /* Adjust size of the labels (CPU and GPU) */
+    font-family: 'Poppins', sans-serif; /* Use Poppins font */
+    margin: 0px 0; /* Space around labels */
+}
+
+.temperature {
+    font-family: 'Poppins', sans-serif; /* Use Poppins font */
+    font-size: 125px; /* Size of the temperature reading */
+}
+
+
+
