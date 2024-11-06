@@ -58,15 +58,15 @@ body {
 }
 
 .title {
-    margin-top: 115px;
-    margin-bottom: 30px; /* Space between title and temperature sections */
+    margin-top: 100px;
+    margin-bottom: -175px; /* Space between title and temperature sections */
     font-size: 60px; /* Title font size */
 }
 
 .temp-container {
     display: flex;
     justify-content: center; /* Space between CPU and GPU sections */
-    width: 90%; /* Set the width to 75% */
+    width: 85%; /* Set the width to 75% */
     margin: auto; /* Center the container horizontally */
 }
 
@@ -78,7 +78,7 @@ body {
 h2 {
     font-size: 50px; /* Adjust size of the labels (CPU and GPU) */
     font-family: 'Poppins', sans-serif; /* Use Poppins font */
-    margin: 0px 0; /* Space around labels */
+    margin: -30px 6px; /* Space around labels */
 }
 
 .temperature {
@@ -86,12 +86,6 @@ h2 {
     font-size: 125px; /* Size of the temperature reading */
 }
 
-
-.media-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
 
 .watchface-1-overlay {
     position: absolute;
@@ -103,14 +97,14 @@ h2 {
     align-items: center;
     justify-content: center;
     z-index: 2;
-    background-color: rgba(0, 0, 0, 0.6); /* Optional for semi-transparency */
+    background-color: rgba(0, 0, 0, 0.4); /* Optional for semi-transparency */
 }
 
 .watchface {
     position: relative;
-    width: 500px; /* Increase size to make clock larger */
-    height: 500px;
-    border: 15px solid #ffffff;
+    width: 600px; /* Increase size to make clock larger */
+    height: 600px;
+    border: 0px solid #ffffff;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -166,8 +160,8 @@ h2 {
 
 .hour-marker {
     position: absolute;
-    width: 9px; /* Size of the dots */
-    height: 9px; /* Size of the dots */
+    width: 20px; /* Size of the dots */
+    height: 20px; /* Size of the dots */
     background-color: white; /* Color of the dots */
     border-radius: 50%; /* Make them circular */
     transform: translate(-50%, -50%); /* Center the dots on their position */
