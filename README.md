@@ -5,3 +5,5 @@ So this was created, a way to add various images, gifs and even videos each with
 use this link as a CAM webapp to see what it can do: https://charm-speckled-larkspur.glitch.me/
 
 if you dont want to self host this, you can modify a couple lines on index.html and on the script media sources to make it work on glitch.com
+
+app.py is a simple flask app to start the webpage, if you dont have flask, you might need to install that with: pip install flask
