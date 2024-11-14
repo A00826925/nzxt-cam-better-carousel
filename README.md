@@ -4,7 +4,7 @@ So this was created, a way to add various images, gifs and even videos each with
 
 use this link as a CAM webapp to see what it can do: https://charm-speckled-larkspur.glitch.me/
 
-if you want to modify your own images, you can just do the following:
+to run locally and modify your own images, you can just do the following:
 
 1. Download the repository
 2. Save it in a folder on a safe location, like Documents, or somewhere you know you wont delete it.
