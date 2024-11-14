@@ -1,4 +1,4 @@
-I wanted to add more images to my NZXT cooler screen, but CAM only allows 5 faces on the carousel function. not only that, i cant add an image with the watchface.
+I wanted to add more images to my NZXT cooler screen, but CAM only allows 5 presets on the carousel function. not only that, i cant add an image with the watchface.
 
 So this was created, a way to add various images, gifs and even videos each with custom duration, where you can select: No readings, dual Temps overlay, or watchface overlay.
 
