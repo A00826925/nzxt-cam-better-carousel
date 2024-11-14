@@ -1,0 +1,168 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 640px;
+    height: 640px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000;
+}
+
+.media-container {
+    width: 640px;
+    height: 640px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.media-container img, .media-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: object-position 0.5s ease;
+    position: absolute;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.media-container {
+    width: 640px;
+    height: 640px;
+    position: relative;
+    overflow: hidden;
+}
+
+.temp-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center horizontally */
+    justify-content: top; /* Center vertically */
+    background-color: rgba(0, 0, 0, 0.2); /* Semi-transparent background for readability */
+    color: rgba(255, 255, 255, 0.8); /* Text color */
+    font-family: 'Poppins', sans-serif; /* Use Poppins font */
+    text-align: center; /* Center text alignment */
+}
+
+.title {
+    margin-top: 100px;
+    margin-bottom: -175px; /* Space between title and temperature sections */
+    font-size: 60px; /* Title font size */
+}
+
+.temp-container {
+    display: flex;
+    justify-content: center; /* Space between CPU and GPU sections */
+    width: 85%; /* Set the width to 75% */
+    margin: auto; /* Center the container horizontally */
+}
+
+.cpu-temp, .gpu-temp {
+    flex: 1; /* Equal space for CPU and GPU */
+    
+}
+
+h2 {
+    font-size: 50px; /* Adjust size of the labels (CPU and GPU) */
+    font-family: 'Poppins', sans-serif; /* Use Poppins font */
+    margin: -30px 6px; /* Space around labels */
+}
+
+.temperature {
+    font-family: 'Poppins', sans-serif; /* Use Poppins font */
+    font-size: 125px; /* Size of the temperature reading */
+}
+
+
+.watchface-1-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    background-color: rgba(0, 0, 0, 0.4); /* Optional for semi-transparency */
+}
+
+.watchface {
+    position: relative;
+    width: 600px; /* Increase size to make clock larger */
+    height: 600px;
+    border: 0px solid #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.center-circle {
+    position: absolute;
+    width: 7px; /* Adjust size as needed */
+    height: 7px; /* Adjust size as needed */
+    background-color: #ffffff; /* Change this color to match your border or desired color */
+    border-radius: 100%; /* Make it a circle */
+    z-index: 10; /* Ensure it appears above the clock hands */
+}
+
+.hand {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: 0 50%; /* Rotate from center of clock */
+    transform: rotate(90deg) translate(-50%, -50%); /* Offset to center each hand */
+    transition: transform 0.05s ease-out;
+}
+
+.hour-hand {
+    width: 120px; /* Length of hour hand */
+    height: 15px; /* Thickness of hour hand */
+    border-radius: 20%; /* Make it a circle */
+    background-color: #fff;
+}
+
+.minute-hand {
+    width: 180px; /* Length of minute hand */
+    height: 7px; /* Thickness of minute hand */
+    border-radius: 20%; /* Make it a circle */
+    background-color: #fff;
+}
+
+.second-hand {
+    width: 200px; /* Length of second hand */
+    height: 2px; /* Thickness of second hand */
+    background-color: red;
+}
+
+.hour-markers {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none; /* Make sure the dots don't interfere with clock interaction */
+}
+
+.hour-marker {
+    position: absolute;
+    width: 20px; /* Size of the dots */
+    height: 20px; /* Size of the dots */
+    background-color: white; /* Color of the dots */
+    border-radius: 50%; /* Make them circular */
+    transform: translate(-50%, -50%); /* Center the dots on their position */
+}
