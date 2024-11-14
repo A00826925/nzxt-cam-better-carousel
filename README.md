@@ -4,6 +4,11 @@ So this was created, a way to add various images, gifs and even videos each with
 
 use this link as a CAM webapp to see what it can do: https://charm-speckled-larkspur.glitch.me/
 
-if you dont want to self host this, you can modify a couple lines on index.html and on the script media sources to make it work on glitch.com
+if you want to modify your own images, you can just do the following:
 
-app.py is a simple flask app to start the webpage, if you dont have flask, you might need to install that with: pip install flask
+1. Download the repository
+2. Save it in a folder on a safe location, like Documents, or somewhere you know you wont delete it.
+3. Double click index.html so that it opens in your browser
+4. Copy the local file url from your browser
+5. Use that local file url as your NZXT CAM web integration link.
+6. To modify images, just edit the mediaFiles array in script.js, modify its properties to fit your image.
