@@ -10,13 +10,17 @@
   var VIDEO_RE = /\.(mp4|webm|mov|m4v|ogv)$/i;
   var MEDIA_RE = /\.(mp4|webm|mov|m4v|ogv|gif|jpe?g|png|webp|avif|bmp|svg)$/i;
 
-  var OVERLAYS = ["none", "temps", "clock", "digital"];
-  var DEFAULT_DIM = { none: 0, temps: 20, clock: 40, digital: 35 };
+  var OVERLAYS = ["none", "temps", "clock", "digital", "quad"];
+  var DEFAULT_DIM = { none: 0, temps: 20, clock: 40, digital: 35, quad: 35 };
 
   var DEFAULT_SETTINGS = {
     title: "NZXT",
     leftSensor: "cpu",
     rightSensor: "gpu",
+    quad1: "cpu",       // quad overlay: top left, top right, bottom left, bottom right
+    quad2: "gpu",
+    quad3: "cpuLoad",
+    quad4: "gpuLoad",
     tempUnit: "C",
     hour24: true,
     showDate: true,
@@ -30,13 +34,15 @@
     muteVideos: true
   };
 
+  // `long` is used where a temperature and a load of the same part can be on screen together (quad).
   var SENSORS = {
-    cpu: { label: "CPU", unit: "temp" },
-    gpu: { label: "GPU", unit: "temp" },
-    liquid: { label: "LIQUID", unit: "temp" },
-    cpuLoad: { label: "CPU", unit: "load" },
-    gpuLoad: { label: "GPU", unit: "load" }
+    cpu: { label: "CPU", long: "CPU", unit: "temp" },
+    gpu: { label: "GPU", long: "GPU", unit: "temp" },
+    liquid: { label: "LIQUID", long: "LIQUID", unit: "temp" },
+    cpuLoad: { label: "CPU", long: "CPU LOAD", unit: "load" },
+    gpuLoad: { label: "GPU", long: "GPU LOAD", unit: "load" }
   };
+  var QUAD_DEFAULTS = ["cpu", "gpu", "cpuLoad", "gpuLoad"];
 
   var FOCUS_WORDS = {
     center: [50, 50], top: [50, 0], bottom: [50, 100], left: [0, 50], right: [100, 50],
@@ -232,12 +238,27 @@
     digital.appendChild(dDate);
     digital.appendChild(dMini);
 
-    var layers = { temps: temps, clock: clock, digital: digital };
+    // Quad overlay: four readings in a 2x2 grid, each corner picked in the display settings
+    var quad = h("div", "ks-ov ks-quad");
+    quad.appendChild(h("div", "ks-quad-h"));
+    quad.appendChild(h("div", "ks-quad-v"));
+    var quadCells = [0, 1, 2, 3].map(function (i) {
+      var cell = h("div", "ks-cell ks-txt ks-c" + i);
+      var val = h("div", "ks-qval", "–°");
+      var label = h("div", "ks-qlabel");
+      cell.appendChild(val);
+      cell.appendChild(label);
+      quad.appendChild(cell);
+      return { val: val, label: label };
+    });
+
+    var layers = { temps: temps, clock: clock, digital: digital, quad: quad };
     root.appendChild(media);
     root.appendChild(dim);
     root.appendChild(temps);
     root.appendChild(clock);
     root.appendChild(digital);
+    root.appendChild(quad);
     container.appendChild(root);
 
     function renderSensors() {
@@ -252,6 +273,14 @@
           setText(miniRows[r][i].val, text);
           setText(miniRows[r][i].label, SENSORS[key].label + " ");
         }
+      }
+      var quadKeys = [s.quad1, s.quad2, s.quad3, s.quad4];
+      for (var q = 0; q < 4; q++) {
+        var qkey = SENSORS[quadKeys[q]] ? quadKeys[q] : QUAD_DEFAULTS[q];
+        var qtext = formatSensor(qkey, values, s.tempUnit);
+        setText(quadCells[q].val, qtext);
+        quadCells[q].val.classList.toggle("ks-long", qtext.length > 3);
+        setText(quadCells[q].label, SENSORS[qkey].long);
       }
     }
 

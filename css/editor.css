@@ -20,6 +20,7 @@
   --ov-temps: #fb923c;
   --ov-clock: #60a5fa;
   --ov-digital: #34d399;
+  --ov-quad: #f472b6;
   --radius: 10px;
   color-scheme: dark;
 }
@@ -350,6 +351,7 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 0; bo
 .ov-temps::before { background: var(--ov-temps); }
 .ov-clock::before { background: var(--ov-clock); }
 .ov-digital::before { background: var(--ov-digital); }
+.ov-quad::before { background: var(--ov-quad); }
 
 .acts { display: flex; gap: 0; opacity: 0; transition: opacity 0.1s; }
 .row:hover .acts, .row.off .acts { opacity: 1; }
@@ -583,7 +585,7 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 0; bo
 .anchor-pad button:hover::after { background: var(--text); }
 .anchor-pad button.on::after { inset: 22%; background: var(--accent); }
 
-.ovgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.ovgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .ovgrid button {
   --c: var(--ov-none);
   display: flex;
@@ -602,6 +604,7 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 0; bo
 .ovgrid button[data-value="temps"] { --c: var(--ov-temps); }
 .ovgrid button[data-value="clock"] { --c: var(--ov-clock); }
 .ovgrid button[data-value="digital"] { --c: var(--ov-digital); }
+.ovgrid button[data-value="quad"] { --c: var(--ov-quad); }
 .ovgrid svg { width: 30px; height: 30px; stroke-width: 2.2; }
 .ovgrid button:hover { color: var(--text); border-color: #454b5c; }
 .ovgrid button.on { color: var(--text); border-color: var(--c); background: color-mix(in srgb, var(--c) 12%, var(--bg)); }

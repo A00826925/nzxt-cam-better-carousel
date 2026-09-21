@@ -1,8 +1,8 @@
 'use strict';
 /*
- * Kraken Host: shows the carousel on the NZXT Kraken Elite LCD without NZXT CAM.
+ * Kraken Host: shows the carousel on an NZXT Kraken's LCD without NZXT CAM.
  *
- * Renders ../index.html (the same page CAM would show) in a hidden 640x640 off-screen window,
+ * Renders ../index.html (the same page CAM would show) in a hidden off-screen window sized to the LCD,
  * feeds it sensor readings through the same hook CAM uses (window.nzxt.v1.onMonitoringDataUpdate),
  * and streams every frame to the cooler exactly the way CAM does.
  *
@@ -19,7 +19,8 @@ const { Sensors } = require('./lib/sensors');
 const ROOT = path.resolve(__dirname, '..');   // the carousel folder: index.html, editor.html, media/
 const PAGE = path.join(ROOT, 'index.html');
 const EDITOR = path.join(ROOT, 'editor.html');
-const SIZE = 640;
+// Until a cooler is connected; then the window follows its resolution. The env var is a test knob.
+const DEFAULT_SIZE = Number(process.env.KRAKEN_HOST_TEST_SIZE) || 640;
 const FPS = 30;                // ask Chromium for at most this many frames; the cooler tops out ~28
 const KEEPALIVE_MS = 1000;     // re-send the current frame at least this often, even if nothing moved
 const RETRY_MS = 5000;         // how often to retry when the cooler is missing or CAM has it
@@ -28,7 +29,7 @@ const SENSOR_MS = 1000;
 // Only ever loads the local carousel page, so Electron's remote-content warning is just noise.
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
-// 640x640 bitmaps regardless of Windows display scaling; let videos start without a click.
+// Bitmaps at the LCD's exact size regardless of Windows display scaling; let videos start without a click.
 app.commandLine.appendSwitch('force-device-scale-factor', '1');
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
@@ -83,6 +84,10 @@ if (!app.requestSingleInstanceLock()) {
 
   // ---------- the cooler ----------
 
+  let framesThisConnection = 0;
+  let rejectedConnections = 0; // untested model that hasn't taken a single frame, connection after connection
+  let retryMs = RETRY_MS;
+
   async function connect() {
     if (await camRunning()) {
       setStatus('NZXT CAM is running — close it to use Kraken Host');
@@ -90,8 +95,12 @@ if (!app.requestSingleInstanceLock()) {
     }
     try {
       kraken = await new Kraken().open();
-      setStatus('Streaming to the cooler');
-      log(`connected: PID ${kraken.productId.toString(16)}, orientation ${kraken.orientation * 90}°`);
+      const m = kraken.model;
+      framesThisConnection = 0;
+      setStatus(`Streaming to your ${m.name}${m.tested ? '' : ' (untested model)'}`);
+      log(`connected: ${m.name} (PID ${kraken.productId.toString(16)}), ${kraken.size}x${kraken.size}, ` +
+          `orientation ${kraken.orientation * 90}°${m.tested ? '' : ', UNTESTED model'}`);
+      setRenderSize(kraken.size);
       sentSeq = -1; // push a frame right away
       return true;
     } catch (e) {
@@ -99,6 +108,16 @@ if (!app.requestSingleInstanceLock()) {
       setStatus(`Cooler not available (${e.message})`);
       return false;
     }
+  }
+
+  /** Render the page at the cooler's own resolution; the page rescales itself to fit. */
+  function setRenderSize(size) {
+    if (!win || win.isDestroyed()) return;
+    const [w, h] = win.getContentSize();
+    if (w === size && h === size) return;
+    log(`render size ${size}x${size}`);
+    win.setContentSize(size, size);
+    latest = null;
   }
 
   async function disconnect(reason) {
@@ -110,30 +129,45 @@ if (!app.requestSingleInstanceLock()) {
   }
 
   async function streamLoop() {
-    const px = new Uint16Array(SIZE * SIZE);
+    let px = null;
     while (!quitting) {
-      if (!kraken && !(await connect())) { await sleep(RETRY_MS); continue; }
+      if (!kraken && !(await connect())) { await sleep(retryMs); continue; }
 
       const now = Date.now();
       const fresh = latestSeq !== sentSeq;
       if (!latest || (!fresh && now - lastSentAt < KEEPALIVE_MS)) { await sleep(4); continue; }
 
+      // Hold on to this connection: the CAM check in sensorLoop may drop `kraken` while a frame is in flight.
+      const k = kraken;
+      const size = k.size;
       const seq = latestSeq;
       const { width, height } = latest.getSize();
-      if (width !== SIZE || height !== SIZE) {
-        setStatus(`Unexpected frame size ${width}x${height}`);
-        await sleep(500);
-        continue;
-      }
-      const payload = q565.encode(q565.bgraToRgb565(latest.toBitmap(), SIZE, kraken.orientation, px), SIZE, SIZE);
+      if (width !== size || height !== size) { await sleep(20); continue; } // resize still settling
+      if (!px || px.length !== size * size) px = new Uint16Array(size * size);
+
+      const payload = q565.encode(q565.bgraToRgb565(latest.toBitmap(), size, k.orientation, px), size, size);
       try {
-        await kraken.sendFrame(payload);
+        await k.sendFrame(payload);
         sentSeq = seq;
         lastSentAt = Date.now();
         state.sentWindow.push(lastSentAt);
+        framesThisConnection++;
+        rejectedConnections = 0;
+        retryMs = RETRY_MS;
       } catch (e) {
+        if (kraken !== k) continue; // already dropped on purpose (CAM started, sleep, quitting)
+        const model = k.model;
+        const neverTookAFrame = framesThisConnection === 0 && !model.tested;
         await disconnect(`frame failed: ${e.message}`);
-        await sleep(1000);
+        if (neverTookAFrame && ++rejectedConnections >= 3) {
+          // Best-effort model that doesn't understand CAM's live frames: say so, and stop hammering it.
+          setStatus(`Your ${model.name} didn't accept live frames — this model isn't supported yet`);
+          log(`${model.name}: no frame accepted after ${rejectedConnections} tries; now retrying once a minute`);
+          retryMs = 60000;
+          await sleep(retryMs);
+        } else {
+          await sleep(1000);
+        }
       }
     }
   }
@@ -177,8 +211,8 @@ if (!app.requestSingleInstanceLock()) {
   function createWindow() {
     win = new BrowserWindow({
       show: false,
-      width: SIZE,
-      height: SIZE,
+      width: DEFAULT_SIZE,
+      height: DEFAULT_SIZE,
       useContentSize: true,
       webPreferences: { offscreen: true, backgroundThrottling: false, contextIsolation: true },
     });

@@ -8,7 +8,8 @@ with its own timing and its own overlay (CPU/GPU temperatures, an analog clock, 
 nothing), managed from a visual editor, so you never have to touch code.
 
 - Unlimited images, GIFs and videos, each with its own duration or number of plays
-- Overlays: temperatures, analog clock (with temps under the hands) or digital clock, per item
+- Overlays: temperatures, analog clock (with temps under the hands), digital clock, or a quad of four
+  readings, per item
 - Crop and zoom each item by dragging it in a round preview of the screen
 - Crossfades between items, with the next one preloaded so there are no black flashes
 - Remote control from the editor: previous, next, jump to an item, pause
@@ -23,9 +24,10 @@ nothing), managed from a visual editor, so you never have to touch code.
 ### Without NZXT CAM
 
 CAM conflicts with other RGB software such as SignalRGB. The `app/` folder contains **Kraken Host**, a
-small tray app that shows this carousel on the Kraken Elite's screen without CAM, with live CPU, GPU and
-liquid temperatures. It's display only: pump, fans and lighting are left to whatever software you use.
-Setup takes a few commands — see [app/README.md](app/README.md).
+small tray app that shows this carousel on the Kraken's screen without CAM, with live CPU, GPU and liquid
+temperatures. It's display only: pump, fans and lighting are left to whatever software you use. Tested on
+the Kraken Elite (2023); the other Kraken LCD models are enabled on a best-effort basis. Setup takes a few
+commands — see [app/README.md](app/README.md).
 
 ## Setup
 
@@ -59,13 +61,14 @@ it, scroll to zoom, double-click to reset. **Play playlist** runs the real carou
 
 - How long an image or GIF stays up, or how many times a video plays
 - Fill or fit, zoom, and focus point
-- Overlay: none, temps, clock or digital, plus how much to dim the picture behind it and an optional text color
+- Overlay: none, temps, clock, digital or quad, plus how much to dim the picture behind it and an optional text color
 - NSFW tag, and whether the item is in the rotation at all
 - Rename the file (pencil icon, `F2`, or double-click a name). This renames the actual file in `media/`.
 
 **Display settings tab:**
 
 - Title text, which two sensors to show (CPU, GPU or liquid temperature, CPU or GPU load), and °C/°F
+- Quad overlay: which reading goes in each of its four corners
 - Clock options: tick or sweep second hand, temps under the hands, 12/24h, date
 - Colors, crossfade length, default image duration, and muting videos
 
@@ -141,7 +144,7 @@ window.CAROUSEL_CONFIG = {
 | `src` | path relative to this folder |
 | `duration` | seconds on screen (images and GIFs) |
 | `plays` | how many times a video plays before moving on |
-| `overlay` | `none`, `temps`, `clock` or `digital` |
+| `overlay` | `none`, `temps`, `clock`, `digital` or `quad` |
 | `dim` | darkening behind the overlay, 0–100 % |
 | `zoom` | 100 = no zoom |
 | `x`, `y` | focus point in % (0 0 = top-left), also the zoom anchor |

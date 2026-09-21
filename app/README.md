@@ -14,8 +14,20 @@ controlling it, the Kraken's own firmware runs the pump at 100%, which is safe.
 
 ## Requirements
 
-- Windows 10/11 and an **NZXT Kraken Elite (2023)** — the 640×640 model. Other Kraken LCD models use
-  the same protocol but haven't been tested; they are not enabled yet.
+- Windows 10/11 and an NZXT Kraken with a screen:
+
+  | Model | Screen | |
+  |---|---|---|
+  | Kraken Elite (2023) | 640×640 | ✅ tested |
+  | Kraken Elite RGB (2024) | 640×640 | untested — should work |
+  | Kraken (2023) | 240×240 | untested — should work |
+  | Kraken Plus (2024) | 240×240 | untested — should work |
+  | Kraken Z53 / Z63 / Z73 | 320×320 | untested — older generation, may not |
+
+  Untested models are enabled on a best-effort basis: if it works, it works. The page is rendered at
+  your screen's own resolution. If your model refuses the frames, the tray says *"didn't accept live
+  frames — this model isn't supported yet"* and it only retries once a minute. Please open an issue
+  with your log either way — a "works on my Kraken Plus" is just as useful.
 - [Node.js](https://nodejs.org) 20 or newer
 - [.NET 8 SDK](https://dotnet.microsoft.com/download) — to build the small sensor helper
 - Optional, for **CPU temperature**: the [PawnIO](https://github.com/namazso/PawnIO.Setup/releases)
@@ -61,6 +73,9 @@ Right-click it for the status line (fps and temperatures), **Open editor**, **Re
 - **Other numbers show "–".** The sensor helper isn't built: run `npm run build-sensors`.
 - **Nothing on the screen after waking the PC.** It reconnects by itself within a few seconds; if not,
   use **Reload display** or restart it from the tray.
+- **"didn't accept live frames — this model isn't supported yet".** Your Kraken is one of the untested
+  models and rejected CAM-style live frames. Quit Kraken Host, run `node tools/stream-test.js 10` from
+  this folder and attach its output plus the log to an issue.
 
 ## How it works
 

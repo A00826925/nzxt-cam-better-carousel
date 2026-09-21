@@ -243,6 +243,10 @@
                 <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16"/><path d="M11 18h7M22 18h7M13 25h14"/></svg>
                 <span>Digital</span>
               </button>
+              <button type="button" data-value="quad" title="Four readings in a 2x2 grid (pick them in Display settings)">
+                <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16"/><path d="M20 9v22M9 20h22"/></svg>
+                <span>Quad</span>
+              </button>
             </div>
             <div class="slider-row">
               <label>Dim</label>
@@ -298,6 +302,51 @@
             </div>
           </div>
           <p class="muted small">The same sensors appear under the digital clock.</p>
+        </section>
+
+        <section class="group">
+          <h3>Quad overlay</h3>
+          <div class="field">
+            <label for="sQuad1">Top left</label>
+            <select id="sQuad1" data-setting="quad1">
+              <option value="cpu">CPU temperature</option>
+              <option value="gpu">GPU temperature</option>
+              <option value="liquid">Liquid temperature</option>
+              <option value="cpuLoad">CPU load</option>
+              <option value="gpuLoad">GPU load</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sQuad2">Top right</label>
+            <select id="sQuad2" data-setting="quad2">
+              <option value="cpu">CPU temperature</option>
+              <option value="gpu">GPU temperature</option>
+              <option value="liquid">Liquid temperature</option>
+              <option value="cpuLoad">CPU load</option>
+              <option value="gpuLoad">GPU load</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sQuad3">Bottom left</label>
+            <select id="sQuad3" data-setting="quad3">
+              <option value="cpu">CPU temperature</option>
+              <option value="gpu">GPU temperature</option>
+              <option value="liquid">Liquid temperature</option>
+              <option value="cpuLoad">CPU load</option>
+              <option value="gpuLoad">GPU load</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sQuad4">Bottom right</label>
+            <select id="sQuad4" data-setting="quad4">
+              <option value="cpu">CPU temperature</option>
+              <option value="gpu">GPU temperature</option>
+              <option value="liquid">Liquid temperature</option>
+              <option value="cpuLoad">CPU load</option>
+              <option value="gpuLoad">GPU load</option>
+            </select>
+          </div>
+          <p class="muted small">Uses the °C/°F setting above.</p>
         </section>
 
         <section class="group">

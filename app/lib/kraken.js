@@ -1,6 +1,6 @@
 'use strict';
 /*
- * NZXT Kraken Elite (2023) LCD: display-only driver.
+ * NZXT Kraken LCD: display-only driver (Elite 2023 tested; other LCD models best-effort).
  *
  * Two USB interfaces on the cooler:
  *   - HID (interface 1): 64-byte command/response reports. Used here ONLY for the frame handshake
@@ -19,7 +19,18 @@ const HID = require('node-hid');
 const { findByIds } = require('usb');
 
 const VID = 0x1e71;
-const PIDS = [0x300c]; // Kraken Elite 2023 (640x640). Other LCD Krakens can be added once tested.
+
+// Kraken models with a screen, as known to liquidctl. Only the Elite 2023 has been tested; the others
+// share the protocol family and are enabled on a best-effort basis ("if it happens to work, it works").
+// `chunk` is how much the cooler takes per bulk write (liquidctl's bulk_buffer_size).
+const MODELS = {
+  0x300c: { name: 'Kraken Elite (2023)', size: 640, chunk: 2 * 1024 * 1024, tested: true },
+  0x3012: { name: 'Kraken Elite RGB (2024)', size: 640, chunk: 2 * 1024 * 1024, tested: false },
+  0x300e: { name: 'Kraken (2023)', size: 240, chunk: 2 * 1024 * 1024, tested: false },
+  0x3014: { name: 'Kraken Plus (2024)', size: 240, chunk: 2 * 1024 * 1024, tested: false },
+  0x3008: { name: 'Kraken Z53/Z63/Z73', size: 320, chunk: 512, tested: false },
+};
+const PIDS = Object.keys(MODELS).map(Number);
 const REPORT = 64;
 const MAGIC = Buffer.from('12fa01e8abcdef9876543210', 'hex');
 
@@ -31,7 +42,8 @@ class Kraken {
     this.bulkOut = null;
     this.waiters = [];     // { a, b, resolve, timer }
     this.orientation = 0;  // 0..3
-    this.size = 640;
+    this.model = null;     // entry from MODELS
+    this.size = 640;       // square LCD resolution of the connected model
     this.busy = Promise.resolve(); // serialises HID exchanges so replies can't get mixed up
   }
 
@@ -45,8 +57,10 @@ class Kraken {
 
   async open() {
     const info = await Kraken.find();
-    if (!info) throw new Error('No supported Kraken found');
+    if (!info) throw new Error('No Kraken with a screen found');
     this.productId = info.productId;
+    this.model = MODELS[info.productId];
+    this.size = this.model.size;
 
     this.hid = await HID.HIDAsync.open(info.path);
     this.hid.on('data', (buf) => this._onReport(buf));
@@ -118,8 +132,12 @@ class Kraken {
     return p;
   }
 
-  _bulk(buf) {
-    return this.bulkOut.transferAsync(buf);
+  /** Bulk write in the model's chunk size (one transfer for the 2023+ models' 2 MB buffers). */
+  async _bulk(buf) {
+    const step = (this.model && this.model.chunk) || buf.length;
+    for (let i = 0; i < buf.length; i += step) {
+      await this.bulkOut.transferAsync(buf.subarray(i, Math.min(i + step, buf.length)));
+    }
   }
 
   // ---------- reads ----------
@@ -160,4 +178,4 @@ class Kraken {
   }
 }
 
-module.exports = { Kraken, VID, PIDS };
+module.exports = { Kraken, VID, PIDS, MODELS };
