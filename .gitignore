@@ -9,6 +9,11 @@ remote.js
 # Leftovers from the old single-file version, kept locally only
 _old_v1/
 
+# Kraken Host app: dependencies and build output (npm install / dotnet publish recreate them)
+app/node_modules/
+app/sensors/bin/
+app/sensors/obj/
+
 # OS clutter
 Thumbs.db
 desktop.ini

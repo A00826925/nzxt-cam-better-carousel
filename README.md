@@ -17,8 +17,15 @@ nothing), managed from a visual editor, so you never have to touch code.
 
 ## Requirements
 
-- An NZXT Kraken with an LCD screen, and NZXT CAM
+- An NZXT Kraken with an LCD screen, and NZXT CAM — **or** Kraken Host instead of CAM (see below)
 - **Chrome or Edge** for the editor (it saves straight into the folder; Firefox can only download the playlist)
+
+### Without NZXT CAM
+
+CAM conflicts with other RGB software such as SignalRGB. The `app/` folder contains **Kraken Host**, a
+small tray app that shows this carousel on the Kraken Elite's screen without CAM, with live CPU, GPU and
+liquid temperatures. It's display only: pump, fans and lighting are left to whatever software you use.
+Setup takes a few commands — see [app/README.md](app/README.md).
 
 ## Setup
 

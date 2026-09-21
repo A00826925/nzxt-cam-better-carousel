@@ -1,0 +1,22 @@
+{
+  "name": "kraken-host",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shows the carousel on the NZXT Kraken Elite LCD without NZXT CAM. Display only: it never changes pump, fan or lighting settings.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build-sensors": "dotnet publish sensors -c Release -o sensors/bin/publish",
+    "install-startup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-startup.ps1 -StartNow",
+    "uninstall-startup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/uninstall-startup.ps1",
+    "test-stream": "node tools/stream-test.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "node-hid": "^3.4.0",
+    "usb": "^2.18.0"
+  },
+  "devDependencies": {
+    "electron": "^38.8.6"
+  }
+}
