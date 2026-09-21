@@ -3,6 +3,7 @@ media/
 
 # Your playlist and the editor's runtime files (each person makes their own)
 config.js
+config.backup.js
 remote.js
 
 # Leftovers from the old single-file version, kept locally only
