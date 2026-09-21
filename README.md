@@ -3,6 +3,8 @@
 I wanted to add more images to my NZXT cooler screen, but CAM only allows 5 presets on the carousel
 function. Not only that, I can't add an image with the watch face.
 
+<img width="1874" height="925" alt="image" src="https://github.com/user-attachments/assets/e9aaf061-6fec-4735-9829-1fbb6dbf0001" />
+
 So this was created: a way to show as many images, GIFs and even videos as you like on the Kraken LCD, each
 with its own timing and its own overlay (CPU/GPU temperatures, an analog clock, a digital clock, or
 nothing), managed from a visual editor, so you never have to touch code.
