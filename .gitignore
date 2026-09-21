@@ -1,0 +1,14 @@
+# Your own images, GIFs and videos
+media/
+
+# Your playlist and the editor's runtime files (each person makes their own)
+config.js
+remote.js
+
+# Leftovers from the old single-file version, kept locally only
+_old_v1/
+
+# OS clutter
+Thumbs.db
+desktop.ini
+.DS_Store

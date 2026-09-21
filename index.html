@@ -1,49 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=640, height=640, initial-scale=1.0">
-    <title>NZXT Kraken Display</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kraken Carousel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/stage.css">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; cursor: none; }
+    #display { position: fixed; inset: 0; }
+    .msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; margin: 0;
+           color: #fff; font: 600 20px/1.5 "Segoe UI", system-ui, sans-serif; text-align: center; }
+    .msg[hidden] { display: none; }
+  </style>
 </head>
 <body>
-    <div class="media-container">
-        <img id="media" src="https://cdn.glitch.global/6cf531d2-66a2-42e8-9873-1ae78ebb18eb/images%2Fmedia1.jpg?v=1730789293723" alt="Media">
-    </div>
-
-    <div class="temp-overlay">
-    <h1 class="title">NZXT</h1>
-        <div class="temp-container">
-            <div class="cpu-temp">
-                
-                <div id="cpu-temperature" class="temperature">
-                    N/A
-                </div>
-                <h2>CPU</h2>
-            </div>
-            <div class="gpu-temp">
-                
-                <div id="gpu-temperature" class="temperature">
-                    N/A
-                </div>
-                <h2>GPU</h2>
-            </div>
-            
-        </div>
-    </div>
-  
-    <div class="watchface-1-overlay" style="display: none;">
-        <div class="hour-markers"></div>
-        <div class="watchface">
-
-            <div class="hand hour-hand"></div>
-            <div class="hand minute-hand"></div>
-            <div class="hand second-hand"></div>
-        </div>
-    </div>
-
-
-    <script src="script.js"></script>
+  <div id="display"></div>
+  <script src="config.js"></script>
+  <script src="js/stage.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/display.js"></script>
 </body>
 </html>

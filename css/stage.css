@@ -1,0 +1,200 @@
+/* Kraken Carousel — stage (shared by the display and the editor preview).
+   Everything is laid out in a fixed 640×640 design space and scaled as a whole. */
+
+.ks-stage {
+  --ks-text: #fff;
+  --ks-hand: #fff;
+  --ks-accent: #ff2d2d;
+  --ks-fade: 600ms;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 640px;
+  height: 640px;
+  overflow: hidden;
+  background: #000;
+  transform-origin: 0 0;
+  font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
+  font-weight: 800;
+  color: var(--ks-text);
+  contain: strict;
+  user-select: none;
+}
+
+.ks-media,
+.ks-dim,
+.ks-ov {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ks-media > img,
+.ks-media > video {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--ks-fade) ease;
+}
+.ks-media > .ks-on { opacity: 1; }
+
+.ks-dim {
+  background: #000;
+  opacity: 0;
+  transition: opacity var(--ks-fade) ease;
+}
+
+.ks-ov {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--ks-fade) ease, visibility 0s linear var(--ks-fade);
+}
+.ks-ov.ks-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity var(--ks-fade) ease;
+}
+
+.ks-txt {
+  opacity: 0.85;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+
+/* ---------- Temps ---------- */
+
+.ks-temps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ks-title {
+  position: absolute;
+  top: 118px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 60px;
+  line-height: 1;
+}
+.ks-row {
+  display: flex;
+  width: 85%;
+  margin-top: 70px;
+}
+.ks-sensor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ks-val {
+  font-size: 125px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.ks-val.ks-long { font-size: 100px; line-height: 1.37; }
+.ks-label {
+  font-size: 50px;
+  line-height: 1;
+  margin-top: -6px;
+}
+
+/* ---------- Analog clock ---------- */
+
+.ks-mark {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius: 50%;
+  background: var(--ks-hand);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+}
+.ks-hand {
+  position: absolute;
+  left: 320px;
+  top: 320px;
+  transform-origin: 0 50%;
+  border-radius: 999px;
+  background: var(--ks-hand);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s cubic-bezier(0.4, 2, 0.6, 1);
+}
+.ks-hour { width: 120px; height: 15px; margin-top: -7.5px; }
+.ks-min { width: 180px; height: 7px; margin-top: -3.5px; }
+.ks-sec {
+  width: 230px;
+  height: 3px;
+  margin: -1.5px 0 0 -30px;
+  transform-origin: 30px 50%;
+  background: var(--ks-accent);
+}
+.ks-sweep .ks-sec { transition: transform 1s linear; }
+.ks-snap .ks-hand { transition: none; }
+.ks-cap {
+  position: absolute;
+  left: 312px;
+  top: 312px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ks-accent);
+}
+
+/* ---------- Digital clock ---------- */
+
+.ks-digital {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.ks-time {
+  font-size: 150px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 20px;
+}
+.ks-ampm {
+  font-size: 40px;
+  letter-spacing: 0;
+  margin-left: 10px;
+}
+.ks-date {
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  margin-top: 8px;
+}
+.ks-mini {
+  display: flex;
+  gap: 48px;
+  margin-top: 34px;
+  font-size: 36px;
+}
+.ks-mini i {
+  font-style: normal;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+/* Sensor readout below the centre of the analog clock hands. */
+.ks-clock-mini {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 398px;
+  justify-content: center;
+  margin-top: 0;
+  gap: 40px;
+  font-size: 38px;
+}

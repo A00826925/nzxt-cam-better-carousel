@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kraken Carousel Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/stage.css">
+  <link rel="stylesheet" href="css/editor.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"></span>
+      <span>Kraken Carousel</span>
+      <span class="brand-sub">Editor</span>
+    </div>
+
+    <div class="folder" id="folder" data-state="none">
+      <span class="dot" aria-hidden="true"></span>
+      <span class="folder-text" id="folderText">Folder not connected</span>
+      <button class="btn small" id="folderBtn" type="button">Connect folder</button>
+      <button class="icon-btn" id="rescanBtn" type="button" title="Rescan the media folder" hidden>
+        <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/></svg>
+      </button>
+    </div>
+
+    <div class="spacer"></div>
+
+    <button class="icon-btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" disabled>
+      <svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+    </button>
+    <button class="icon-btn" id="redoBtn" type="button" title="Redo (Ctrl+Y)" disabled>
+      <svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+    </button>
+    <a class="btn ghost" href="index.html" target="_blank" rel="noopener" title="Open the cooler display page in a new tab">Open display ↗</a>
+    <button class="btn primary" id="saveBtn" type="button" title="Save (Ctrl+S)">
+      <span id="saveLabel">Saved</span>
+    </button>
+  </header>
+
+  <main class="layout">
+    <!-- ============ Playlist ============ -->
+    <aside class="pane playlist">
+      <div class="pane-head">
+        <div>
+          <h2>Playlist</h2>
+          <p class="muted small" id="summary"></p>
+        </div>
+        <button class="btn" id="addBtn" type="button">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add media
+        </button>
+      </div>
+
+      <ol class="list" id="list" aria-label="Playlist"></ol>
+
+      <details class="unused" id="unused" hidden>
+        <summary>
+          <span><b id="unusedCount">0</b> files in <code>media/</code> aren't in the playlist</span>
+          <button class="btn small" id="addAllUnused" type="button">Add all</button>
+        </summary>
+        <div class="unused-grid" id="unusedGrid"></div>
+      </details>
+    </aside>
+
+    <!-- ============ Preview ============ -->
+    <section class="pane stagepane">
+      <div class="preview-shell" id="previewShell">
+        <div class="preview round" id="preview">
+          <div class="preview-msg" id="previewMsg" hidden></div>
+        </div>
+        <div class="ring" aria-hidden="true"></div>
+      </div>
+
+      <div class="now">
+        <span class="now-name" id="nowName">—</span>
+        <span class="now-pos muted" id="nowPos"></span>
+      </div>
+
+      <div class="transport">
+        <button class="icon-btn" id="prevBtn" type="button" title="Previous">
+          <svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8zM5 19V5"/></svg>
+        </button>
+        <button class="btn play" id="playBtn" type="button" title="Play the playlist like the cooler does (Space)">
+          <svg class="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg>
+          <svg class="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+          <span id="playLabel">Play playlist</span>
+        </button>
+        <button class="icon-btn" id="nextBtn" type="button" title="Next">
+          <svg viewBox="0 0 24 24"><path d="m5 4 10 8-10 8zM19 5v14"/></svg>
+        </button>
+        <span class="sep"></span>
+        <label class="toggle" title="Cap every item at 4 seconds while previewing the playlist">
+          <input type="checkbox" id="quickToggle"> <span>Quick</span>
+        </label>
+        <label class="toggle" title="Show the square frame instead of the round screen">
+          <input type="checkbox" id="squareToggle"> <span>Square</span>
+        </label>
+      </div>
+      <div class="remote" title="Controls the carousel running on the cooler (needs the folder connected)">
+        <span class="remote-label">Cooler</span>
+        <button class="icon-btn" id="remotePrev" type="button" title="Previous item on the cooler">
+          <svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8zM5 19V5"/></svg>
+        </button>
+        <button class="btn small" id="remoteShow" type="button" title="Show the selected item on the cooler now">Show selected</button>
+        <button class="icon-btn" id="remotePause" type="button" title="Pause the cooler on its current item">
+          <svg class="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg>
+          <svg class="i-resume" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg>
+        </button>
+        <button class="icon-btn" id="remoteNext" type="button" title="Next item on the cooler">
+          <svg viewBox="0 0 24 24"><path d="m5 4 10 8-10 8zM19 5v14"/></svg>
+        </button>
+        <span class="remote-sep"></span>
+        <label class="remote-nsfw" title="Show items tagged NSFW on the cooler. Takes effect within a second; turning it off skips an NSFW item that is on screen right away.">
+          <span>NSFW</span>
+          <span class="switch nsfw-switch"><input type="checkbox" id="coolerNsfw"><span></span></span>
+        </label>
+      </div>
+      <p class="hint muted small">Drag the preview to reposition · Scroll to zoom · Double-click to reset</p>
+    </section>
+
+    <!-- ============ Inspector ============ -->
+    <aside class="pane inspector">
+      <div class="tabs" role="tablist">
+        <button class="tab on" data-tab="item" type="button" role="tab">Item</button>
+        <button class="tab" data-tab="display" type="button" role="tab">Display settings</button>
+      </div>
+
+      <!-- Item tab -->
+      <div class="tabpanel" id="tab-item">
+        <div class="empty" id="itemEmpty">
+          <p>Select something in the playlist to edit it.</p>
+          <p class="muted small">Tip: Ctrl/Shift-click to select several and edit them together.</p>
+        </div>
+
+        <div id="itemPanel" hidden>
+          <div class="item-head">
+            <div class="item-titles">
+              <div class="item-name" id="itemName"></div>
+              <div class="item-path muted small" id="itemPath"></div>
+            </div>
+            <button class="icon-btn" id="renameBtn" type="button" title="Rename the file on disk">
+              <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+            </button>
+            <label class="switch" title="Include in rotation">
+              <input type="checkbox" data-item="enabled"><span></span>
+            </label>
+          </div>
+
+          <div class="item-rename" id="itemRename" hidden>
+            <div class="rename-field">
+              <input type="text" id="renameInput" spellcheck="false" autocomplete="off" aria-label="New file name">
+              <span id="renameExt"></span>
+            </div>
+            <button class="btn small primary" id="renameOk" type="button">Rename</button>
+            <button class="btn small" id="renameCancel" type="button">Cancel</button>
+          </div>
+
+          <div class="field tag-row">
+            <label for="fNsfw">NSFW <span class="muted small">— hidden on the cooler unless NSFW is on (N)</span></label>
+            <label class="switch nsfw-switch"><input id="fNsfw" type="checkbox" data-item="nsfw"><span></span></label>
+          </div>
+
+          <section class="group" data-show="image">
+            <h3>Duration</h3>
+            <div class="field">
+              <label for="fDuration">Show for</label>
+              <div class="num-unit"><input id="fDuration" type="number" min="1" step="1" data-item="duration"><span>sec</span></div>
+            </div>
+            <div class="chips" id="durationChips">
+              <button type="button" data-duration="10">10s</button>
+              <button type="button" data-duration="30">30s</button>
+              <button type="button" data-duration="60">1 min</button>
+              <button type="button" data-duration="120">2 min</button>
+              <button type="button" data-duration="300">5 min</button>
+            </div>
+          </section>
+
+          <section class="group" data-show="video">
+            <h3>Playback</h3>
+            <div class="field">
+              <label for="fPlays">Play</label>
+              <div class="stepper">
+                <button type="button" data-step="-1" aria-label="Fewer plays">−</button>
+                <input id="fPlays" type="number" min="1" step="1" data-item="plays">
+                <button type="button" data-step="1" aria-label="More plays">+</button>
+              </div>
+              <span class="muted small">times</span>
+            </div>
+            <p class="muted small" id="videoTotal"></p>
+          </section>
+
+          <section class="group" data-single>
+            <h3>Framing <button class="link" id="resetFraming" type="button">Reset</button></h3>
+            <div class="seg" data-item="fit">
+              <button type="button" data-value="cover" title="Fill the screen, cropping edges">Fill</button>
+              <button type="button" data-value="contain" title="Show the whole image with black bars">Fit</button>
+            </div>
+            <div class="slider-row">
+              <label>Zoom</label>
+              <input type="range" min="100" max="400" step="1" data-item="zoom">
+              <div class="num-unit"><input type="number" min="100" max="1000" step="1" data-item="zoom"><span>%</span></div>
+            </div>
+            <div class="framing">
+              <div class="anchor-pad" id="anchorPad" aria-label="Snap focus point">
+                <button type="button" data-x="0" data-y="0"></button><button type="button" data-x="50" data-y="0"></button><button type="button" data-x="100" data-y="0"></button>
+                <button type="button" data-x="0" data-y="50"></button><button type="button" data-x="50" data-y="50"></button><button type="button" data-x="100" data-y="50"></button>
+                <button type="button" data-x="0" data-y="100"></button><button type="button" data-x="50" data-y="100"></button><button type="button" data-x="100" data-y="100"></button>
+              </div>
+              <div class="framing-sliders">
+                <div class="slider-row">
+                  <label>X</label>
+                  <input type="range" min="0" max="100" step="0.1" data-item="x">
+                  <div class="num-unit"><input type="number" min="0" max="100" step="1" data-item="x"><span>%</span></div>
+                </div>
+                <div class="slider-row">
+                  <label>Y</label>
+                  <input type="range" min="0" max="100" step="0.1" data-item="y">
+                  <div class="num-unit"><input type="number" min="0" max="100" step="1" data-item="y"><span>%</span></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="group">
+            <h3>Overlay</h3>
+            <div class="ovgrid" data-item="overlay">
+              <button type="button" data-value="none">
+                <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16"/><path d="m9 31 22-22"/></svg>
+                <span>None</span>
+              </button>
+              <button type="button" data-value="temps">
+                <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16"/><path d="M13 13h14M12 21v5M17 21v5M23 21v5M28 21v5"/></svg>
+                <span>Temps</span>
+              </button>
+              <button type="button" data-value="clock">
+                <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16"/><path d="M20 20V11M20 20l6 4"/></svg>
+                <span>Clock</span>
+              </button>
+              <button type="button" data-value="digital">
+                <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16"/><path d="M11 18h7M22 18h7M13 25h14"/></svg>
+                <span>Digital</span>
+              </button>
+            </div>
+            <div class="slider-row">
+              <label>Dim</label>
+              <input type="range" min="0" max="90" step="1" data-item="dim">
+              <div class="num-unit"><input type="number" min="0" max="100" step="1" data-item="dim"><span>%</span></div>
+            </div>
+            <div class="field">
+              <label class="check"><input type="checkbox" id="colorCustom"> Custom text color</label>
+              <input type="color" id="colorInput" aria-label="Text color for this item">
+            </div>
+          </section>
+
+          <section class="group actions">
+            <button class="btn" id="dupBtn" type="button">Duplicate</button>
+            <button class="btn danger" id="delBtn" type="button">Remove from playlist</button>
+          </section>
+        </div>
+      </div>
+
+      <!-- Display settings tab -->
+      <div class="tabpanel" id="tab-display" hidden>
+        <section class="group">
+          <h3>Temps overlay</h3>
+          <div class="field">
+            <label for="sTitle">Title</label>
+            <input id="sTitle" type="text" maxlength="24" placeholder="(no title)" data-setting="title">
+          </div>
+          <div class="field">
+            <label for="sLeft">Left</label>
+            <select id="sLeft" data-setting="leftSensor">
+              <option value="cpu">CPU temperature</option>
+              <option value="gpu">GPU temperature</option>
+              <option value="liquid">Liquid temperature</option>
+              <option value="cpuLoad">CPU load</option>
+              <option value="gpuLoad">GPU load</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sRight">Right</label>
+            <select id="sRight" data-setting="rightSensor">
+              <option value="cpu">CPU temperature</option>
+              <option value="gpu">GPU temperature</option>
+              <option value="liquid">Liquid temperature</option>
+              <option value="cpuLoad">CPU load</option>
+              <option value="gpuLoad">GPU load</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Units</label>
+            <div class="seg" data-setting="tempUnit">
+              <button type="button" data-value="C">°C</button>
+              <button type="button" data-value="F">°F</button>
+            </div>
+          </div>
+          <p class="muted small">The same sensors appear under the digital clock.</p>
+        </section>
+
+        <section class="group">
+          <h3>Clocks</h3>
+          <div class="field">
+            <label>Second hand</label>
+            <div class="seg" data-setting="clockSweep" data-type="bool">
+              <button type="button" data-value="false">Tick</button>
+              <button type="button" data-value="true">Sweep</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="sClockTemps">Temps under the hands</label>
+            <label class="switch"><input id="sClockTemps" type="checkbox" data-setting="clockTemps"><span></span></label>
+          </div>
+          <div class="field">
+            <label>Digital</label>
+            <div class="seg" data-setting="hour24" data-type="bool">
+              <button type="button" data-value="true">24h</button>
+              <button type="button" data-value="false">12h</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="sDate">Show date</label>
+            <label class="switch"><input id="sDate" type="checkbox" data-setting="showDate"><span></span></label>
+          </div>
+        </section>
+
+        <section class="group">
+          <h3>Colors</h3>
+          <div class="colors">
+            <label><input type="color" data-setting="textColor"><span>Text</span></label>
+            <label><input type="color" data-setting="handColor"><span>Clock hands</span></label>
+            <label><input type="color" data-setting="accentColor"><span>Accent</span></label>
+          </div>
+        </section>
+
+        <section class="group">
+          <h3>Playback</h3>
+          <div class="slider-row">
+            <label>Crossfade</label>
+            <input type="range" min="0" max="2000" step="50" data-setting="transitionMs">
+            <div class="num-unit"><input type="number" min="0" max="5000" step="50" data-setting="transitionMs"><span>ms</span></div>
+          </div>
+          <div class="field">
+            <label for="sDefDur">New images show for</label>
+            <div class="num-unit"><input id="sDefDur" type="number" min="1" step="1" data-setting="defaultDuration"><span>sec</span></div>
+          </div>
+          <div class="field">
+            <label for="sMute">Mute videos</label>
+            <label class="switch"><input id="sMute" type="checkbox" data-setting="muteVideos"><span></span></label>
+          </div>
+        </section>
+
+        <section class="group">
+          <h3>Tools</h3>
+          <div class="tool-list">
+            <button class="btn" id="downloadBtn" type="button">Download config.js</button>
+            <button class="btn" id="legacyBtn" type="button">Import old script.js…</button>
+          </div>
+          <p class="muted small">Import converts the <code>mediaFiles</code> list from the original carousel's script.js.</p>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <div class="dropzone" id="dropzone" hidden><div>Drop images or videos to add them</div></div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <input type="file" id="filePick" multiple accept="image/*,video/*,.gif,.mp4,.webm,.mov,.m4v" hidden>
+  <input type="file" id="legacyPick" accept=".js,text/javascript" hidden>
+
+  <script src="config.js"></script>
+  <script src="js/stage.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/editor.js"></script>
+</body>
+</html>
