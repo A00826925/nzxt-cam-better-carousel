@@ -44,7 +44,7 @@ commands — see [app/README.md](app/README.md).
 5. **Save** with the button or `Ctrl+S`. This writes `config.js`, your playlist.
 6. **Point CAM at it.** Open `index.html` in your browser and copy the address from the address bar (it
    starts with `file:///`). In NZXT CAM, open your Kraken's LCD settings, choose **Web Integration**, and
-   paste that address.
+   paste that address. (Remember, it CAM, `file:///` should be at the beginning of the local link to work)
 
 From then on, keep the editor open while you tweak things: the cooler picks up saved changes within about
 15 seconds.
