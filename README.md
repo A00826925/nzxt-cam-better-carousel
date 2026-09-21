@@ -1,7 +1,7 @@
 # NZXT Kraken Carousel
 
 I wanted to add more images to my NZXT cooler screen, but CAM only allows 5 presets on the carousel
-function. Not only that, I can't add an image with the watch face.
+function. Not only that, I can't add an image with the watch face. (NZXT CAM NOT NEEDED NOW!!)
 
 <img width="1874" height="925" alt="image" src="https://github.com/user-attachments/assets/e9aaf061-6fec-4735-9829-1fbb6dbf0001" />
 
