@@ -1,9 +1,11 @@
 # NZXT Kraken Carousel
 
 I wanted to add more images to my NZXT cooler screen, but CAM only allows 5 presets on the carousel
-function. Not only that, I can't add an image with the watch face.
+function. Not only that, I can't add an image with the watch face. (NZXT CAM NOT NEEDED NOW!!)
 
-So this was created: a way to show as many images, GIFs and even videos as you like on the Kraken LCD, each
+<img width="1874" height="925" alt="image" src="https://github.com/user-attachments/assets/e9aaf061-6fec-4735-9829-1fbb6dbf0001" />
+
+So, with the magic wand called ai, this was created: a way to show as many images, GIFs and even videos as you like on the Kraken LCD, each
 with its own timing and its own overlay (CPU/GPU temperatures, an analog clock, a digital clock, or
 nothing), managed from a visual editor, so you never have to touch code.
 
@@ -43,7 +45,7 @@ commands — see [app/README.md](app/README.md).
 5. **Save** with the button or `Ctrl+S`. This writes `config.js`, your playlist.
 6. **Point CAM at it.** Open `index.html` in your browser and copy the address from the address bar (it
    starts with `file:///`). In NZXT CAM, open your Kraken's LCD settings, choose **Web Integration**, and
-   paste that address.
+   paste that address. (Remember, it CAM, `file:///` should be at the beginning of the local link to work)
 
 From then on, keep the editor open while you tweak things: the cooler picks up saved changes within about
 15 seconds.
