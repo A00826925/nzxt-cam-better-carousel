@@ -11,7 +11,8 @@
   var KS = window.KrakenStage;
   var FSA = typeof window.showDirectoryPicker === "function";
   var SAMPLE = { cpu: 47, gpu: 58, liquid: 31, cpuLoad: 23, gpuLoad: 41 };
-  var ITEM_KEYS = ["src", "duration", "plays", "overlay", "dim", "zoom", "x", "y", "fit", "color", "enabled", "nsfw"];
+  var ITEM_KEYS = ["src", "duration", "plays", "overlay", "dim", "zoom", "x", "y", "rotate", "fit",
+                   "pan", "zoom2", "x2", "y2", "rotate2", "panSec", "color", "enabled", "nsfw"];
   var PREFS_KEY = "kraken-carousel-editor";
 
   function $(sel, root) { return (root || document).querySelector(sel); }
@@ -20,6 +21,7 @@
   function fileName(src) { return decodeURIComponent(String(src).split("/").pop()); }
   function kindOf(src) { return KS.isVideo(src) ? "VIDEO" : /\.gif$/i.test(src) ? "GIF" : "IMAGE"; }
   function round(n, d) { var k = Math.pow(10, d || 0); return Math.round(n * k) / k; }
+  function num(v, fallback) { var n = Number(v); return isFinite(n) ? n : fallback; }
 
   function fmtDur(sec) {
     if (!isFinite(sec)) return "?";
@@ -82,6 +84,11 @@
       if (k === "nsfw" && v !== true) return;
       if (k === "duration" && KS.isVideo(it.src)) return;
       if (k === "plays" && !KS.isVideo(it.src)) return;
+      if (k === "pan" && v !== true) return;
+      if (k === "rotate" && !v) return;
+      // The second framing point is only meaningful while panning, but keep it in the item
+      // itself so turning pan off and on again doesn't lose it.
+      if (!it.pan && (k === "zoom2" || k === "x2" || k === "y2" || k === "rotate2" || k === "panSec")) return;
       out[k] = typeof v === "number" ? round(v, 2) : v;
     });
     return out;
@@ -466,6 +473,8 @@
     var grid = $("#unusedGrid");
     grid.textContent = "";
     files.forEach(function (src) {
+      var wrap = document.createElement("div");
+      wrap.className = "tile-wrap";
       var b = document.createElement("button");
       b.type = "button";
       b.className = "tile";
@@ -473,9 +482,55 @@
       b.title = "Add " + fileName(src) + " to the playlist";
       b.innerHTML = '<div class="thumb"><canvas width="96" height="96"></canvas></div><span></span>';
       $("span", b).textContent = fileName(src);
-      grid.appendChild(b);
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "tile-del";
+      del.dataset.del = src;
+      del.title = "Delete " + fileName(src) + " from media/";
+      del.textContent = "×";
+      wrap.appendChild(b);
+      wrap.appendChild(del);
+      grid.appendChild(wrap);
       paintThumb($("canvas", b), src);
     });
+  }
+
+  function fmtSize(bytes) {
+    if (!(bytes > 0)) return "";
+    if (bytes >= 1048576) return Math.round(bytes / 1048576) + " MB";
+    return Math.max(1, Math.round(bytes / 1024)) + " KB";
+  }
+
+  /**
+   * Delete files from media/ for good. Only ever called with files that aren't in the playlist,
+   * so nothing on the cooler can point at them.
+   */
+  async function deleteUnused(srcs) {
+    if (!rootDir || !srcs.length) return;
+    var total = srcs.reduce(function (n, s) { return n + ((folderFiles.get(s) || {}).size || 0); }, 0);
+    var what = srcs.length === 1 ? "“" + fileName(srcs[0]) + "”" : srcs.length + " files";
+    var size = fmtSize(total);
+    if (!confirm("Delete " + what + (size ? " (" + size + ")" : "") + " from media/?\n\n" +
+                 "This deletes the file" + (srcs.length === 1 ? "" : "s") + " from your disk. It can't be undone.")) return;
+
+    var gone = 0, failed = [];
+    for (var i = 0; i < srcs.length; i++) {
+      var src = srcs[i];
+      try {
+        var dir = await dirHandleFor(src);
+        await dir.removeEntry(src.split("/").pop());
+        folderFiles.delete(src);
+        if (fileURLs.has(src)) URL.revokeObjectURL(fileURLs.get(src));
+        fileURLs.delete(src);
+        info.delete(src);
+        gone++;
+      } catch (e) {
+        failed.push(fileName(src) + " (" + e.message + ")");
+      }
+    }
+    renderUnused();
+    if (failed.length) toast("Couldn't delete " + failed.join(", "), "error");
+    else toast("Deleted " + gone + (gone === 1 ? " file" : " files") + (size ? " — " + size + " freed" : ""), "ok");
   }
 
   // ======================================================================
@@ -588,10 +643,39 @@
   // Inspector
   // ======================================================================
 
-  var FIELD_LIMITS = { zoom: [100, 1000], x: [0, 100], y: [0, 100], dim: [0, 100], duration: [1, 86400], plays: [1, 999] };
+  var FIELD_LIMITS = { zoom: [100, 1000], x: [0, 100], y: [0, 100], rotate: [-180, 180], dim: [0, 100],
+                       duration: [1, 86400], plays: [1, 999],
+                       zoom2: [100, 1000], x2: [0, 100], y2: [0, 100], rotate2: [-180, 180], panSec: [1, 300] };
+
+  // Which framing point the Framing controls edit: "a" is the stored zoom/x/y, "b" the pan target.
+  // Editor-only state; it is never written to config.js.
+  var framePoint = "a";
+
+  /** Translate a framing field name to the point currently being edited. */
+  function pointKey(field) {
+    if (framePoint !== "b") return field;
+    return field === "zoom" || field === "x" || field === "y" || field === "rotate" ? field + "2" : field;
+  }
+
+  /** True when this item has a second framing point to edit. */
+  function itemPans(it) { return !!(it && it.pan); }
+
+  /** The item as the preview should currently frame it: point B looks like A with B's values. */
+  function framedItem(it) {
+    if (!it || framePoint !== "b" || !itemPans(it)) return it;
+    var out = {};
+    for (var k in it) out[k] = it[k];
+    out.zoom = num(it.zoom2, it.zoom);
+    out.x = num(it.x2, it.x);
+    out.y = num(it.y2, it.y);
+    out.rotate = num(it.rotate2, it.rotate);
+    return out;
+  }
 
   function setItemField(field, value) {
     stopPlay();
+    resetPanPreview(); // editing a value goes back to showing the point being edited
+    field = pointKey(field); // the Framing controls edit whichever point is selected
     var lim = FIELD_LIMITS[field];
     if (lim) {
       value = Number(value);
@@ -604,6 +688,21 @@
       if (field === "plays" && !KS.isVideo(it.src)) return;
       if (field === "overlay" && it.overlay !== value && it.dim === KS.DEFAULT_DIM[it.overlay]) {
         it.dim = KS.DEFAULT_DIM[value]; // keep the per-overlay default dim unless the user changed it
+      }
+      if (field === "pan") {
+        if (value === true) {
+          if (it.zoom2 === undefined && it.x2 === undefined && it.y2 === undefined) {
+            // First time on: point B is the current framing pushed in a little, so there is
+            // visible motion straight away instead of a pan that goes nowhere.
+            it.zoom2 = clamp(num(it.zoom, 100) * 1.4, 100, 1000);
+            it.x2 = num(it.x, 50);
+            it.y2 = num(it.y, 50);
+          }
+          // Spelled out rather than left to fall back on point A, so the B controls always
+          // show the value that is actually stored.
+          if (it.rotate2 === undefined) it.rotate2 = num(it.rotate, 0);
+          if (it.panSec === undefined) it.panSec = KS.DEFAULT_PAN_SEC;
+        }
       }
       it[field] = value;
       updateRow(it.id);
@@ -649,9 +748,16 @@
     paintRange(el);
   }
 
+  var framePointFor = null; // which item framePoint belongs to
+
   function refreshInspector() {
     var it = getItem(primaryId);
     var items = selectedItems();
+    if (primaryId !== framePointFor) { // a different item: start on point A again
+      framePointFor = primaryId;
+      framePoint = "a";
+      resetPanPreview();
+    }
     $("#itemEmpty").hidden = !!it;
     $("#itemPanel").hidden = !it;
     if (!it) { updateNow(); return; }
@@ -684,14 +790,22 @@
     var it = getItem(primaryId);
     if (!it) return;
     var items = selectedItems();
+    var pans = itemPans(it);
+    if (!pans && framePoint === "b") framePoint = "a"; // nothing to edit on point B any more
+    $("#panOpts").hidden = !pans;
+    $$("#panPoint button").forEach(function (b) { b.classList.toggle("on", b.dataset.value === framePoint); });
+
     $$("[data-item]").forEach(function (el) {
-      var f = el.dataset.item;
+      var base = el.dataset.item, f = pointKey(base);
       var src = it[f] !== undefined ? it : (items.filter(function (i) { return i[f] !== undefined; })[0] || it);
-      setControl(el, src[f]);
+      var v = src[f];
+      if (v === undefined && f !== base) v = src[base]; // point B not set yet: show point A's value
+      setControl(el, v);
     });
     var durItem = items.filter(function (i) { return !KS.isVideo(i.src); })[0];
     $$("#durationChips button").forEach(function (b) { b.classList.toggle("on", !!durItem && +b.dataset.duration === durItem.duration); });
-    $$("#anchorPad button").forEach(function (b) { b.classList.toggle("on", +b.dataset.x === round(it.x) && +b.dataset.y === round(it.y)); });
+    var fx = num(it[pointKey("x")], it.x), fy = num(it[pointKey("y")], it.y);
+    $$("#anchorPad button").forEach(function (b) { b.classList.toggle("on", +b.dataset.x === round(fx) && +b.dataset.y === round(fy)); });
     $("#colorCustom").checked = !!it.color;
     $("#colorInput").value = it.color || state.settings.textColor;
 
@@ -774,6 +888,17 @@
       setItemField("y", +b.dataset.y);
       commit();
     });
+    $("#panPoint").addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-value]");
+      if (!b || b.dataset.value === framePoint) return;
+      framePoint = b.dataset.value;
+      stopPanPreview();
+      syncInspectorValues();
+      renderPreview();
+    });
+    $("#panPreview").addEventListener("click", function () {
+      panPreview ? stopPanPreview() : startPanPreview();
+    });
     $("#resetFraming").addEventListener("click", resetFraming);
     $("#colorCustom").addEventListener("change", function () {
       setItemField("color", this.checked ? $("#colorInput").value : null);
@@ -807,12 +932,15 @@
     savePrefs();
   }
 
+  /** Reset whichever framing point is being edited. */
   function resetFraming() {
     var it = getItem(primaryId);
     if (!it) return;
-    it.x = 50;
-    it.y = 50;
-    it.zoom = 100;
+    stopPanPreview();
+    it[pointKey("x")] = 50;
+    it[pointKey("y")] = 50;
+    it[pointKey("zoom")] = 100;
+    it[pointKey("rotate")] = 0;
     commit();
   }
 
@@ -832,8 +960,33 @@
   else window.addEventListener("resize", fitPreview);
 
   function clearPreview() {
+    resetPanPreview();
     if (pv) stage.disposeMedia(pv.el);
     pv = null;
+  }
+
+  var panPreview = false; // watching the pan instead of editing a point
+
+  function startPanPreview() {
+    var it = getItem(primaryId);
+    if (!pv || !itemPans(it) || !stage.startPan(pv.el, it)) return;
+    panPreview = true;
+    $("#panPreview").textContent = "Stop preview";
+    $("#panPreview").classList.add("on");
+  }
+
+  /** Drop out of pan playback without touching the preview (callers re-render). */
+  function resetPanPreview() {
+    if (!panPreview) return false;
+    panPreview = false;
+    stage.stopPan();
+    $("#panPreview").textContent = "Preview pan";
+    $("#panPreview").classList.remove("on");
+    return true;
+  }
+
+  function stopPanPreview() {
+    if (resetPanPreview()) renderPreview();
   }
 
   function renderPreview() {
@@ -845,6 +998,12 @@
       updatePreviewMsg();
       return;
     }
+    if (panPreview) { // the rAF loop owns the framing while the pan is running
+      stage.setOverlay(it.overlay, it.dim, it.color);
+      updatePreviewMsg();
+      return;
+    }
+    it = framedItem(it);
     var url = resolveSrc(it.src);
     if (!pv || pv.url !== url) {
       clearPreview();
@@ -941,6 +1100,7 @@
 
     previewBox.addEventListener("pointerdown", function (e) {
       if (player || !pv || e.button !== 0 || !getItem(primaryId)) return;
+      stopPanPreview(); // dragging edits the selected point
       previewBox.setPointerCapture(e.pointerId);
       drag = { x: e.clientX, y: e.clientY, moved: false };
       previewBox.classList.add("grabbing");
@@ -957,13 +1117,28 @@
       // With object-position f and transform-origin f, a content point lands at z·u + f·(B − z·C).
       // So moving the picture by d screen pixels needs Δf = d / (B − z·C).
       var B = KS.SIZE;
+      var kx = pointKey("x"), ky = pointKey("y"), kz = pointKey("zoom");
+      var fx = num(it[kx], it.x), fy = num(it[ky], it.y);
+      var rot = num(it[pointKey("rotate")], it.rotate) || 0;
       var cover = it.fit === "contain" ? Math.min(B / nw, B / nh) : Math.max(B / nw, B / nh);
-      var z = it.zoom / 100;
+      var z = num(it[kz], it.zoom) / 100;
+
+      // The picture is turned on screen, so turn the drag back into the picture's own axes
+      // first; after that it's the same sum as always. (Because the stage anchors zoom at the
+      // turned focus point, the two effects separate cleanly into a turn and a scale.)
+      if (rot) {
+        var rad = (rot * Math.PI) / 180, cs = Math.cos(rad), sn = Math.sin(rad);
+        var ex = dx * cs + dy * sn, ey = -dx * sn + dy * cs;
+        dx = ex;
+        dy = ey;
+      }
+      // With object-position f and the anchor at f, a content point lands at z·u + f·(B − z·C),
+      // so moving the picture by d pixels needs Δf = d / (B − z·C).
       var denX = B - z * nw * cover, denY = B - z * nh * cover;
-      if (Math.abs(denX) > 1) it.x = clamp(it.x + (100 * dx) / denX, 0, 100);
-      if (Math.abs(denY) > 1) it.y = clamp(it.y + (100 * dy) / denY, 0, 100);
+      if (Math.abs(denX) > 1) it[kx] = clamp(fx + (100 * dx) / denX, 0, 100);
+      if (Math.abs(denY) > 1) it[ky] = clamp(fy + (100 * dy) / denY, 0, 100);
       drag.moved = true;
-      stage.frame(el, it);
+      stage.frame(el, framedItem(it));
       syncInspectorValues();
     });
     function endDrag() {
@@ -980,8 +1155,10 @@
       var it = getItem(primaryId);
       if (player || !pv || !it) return;
       e.preventDefault();
-      it.zoom = clamp(it.zoom * Math.exp(-e.deltaY * 0.0012), 100, 1000);
-      stage.frame(pv.el, it);
+      resetPanPreview();
+      var kz = pointKey("zoom");
+      it[kz] = clamp(num(it[kz], it.zoom) * Math.exp(-e.deltaY * 0.0012), 100, 1000);
+      stage.frame(pv.el, framedItem(it));
       syncInspectorValues();
       clearTimeout(wheelTimer);
       wheelTimer = setTimeout(commit, 350);
@@ -1289,13 +1466,28 @@
         var dir = await dirHandleFor(oldSrc);
         var oldName = oldSrc.split("/").pop(), newName = newSrc.split("/").pop();
         var fh = await dir.getFileHandle(oldName);
+        var renamed = false;
+        // move() exists in Chrome but is rejected for folders the user picked, so a failure
+        // here is expected and we fall back rather than giving up.
         if (fh.move) {
-          await fh.move(newName);
-        } else {
-          // Older browsers: copy, make sure the copy is complete, only then drop the old name.
+          try {
+            await fh.move(newName);
+            renamed = true;
+          } catch (e) {
+            try { await dir.getFileHandle(newName); renamed = true; } catch (e2) { /* really didn't move */ }
+          }
+        }
+        if (!renamed) {
+          // Copy, make sure the copy is complete, only then drop the old name.
           var file = await fh.getFile();
-          var copy = await writeFile(dir, newName, file);
-          if ((await copy.getFile()).size !== file.size) throw new Error("the copy came out a different size");
+          try {
+            var copy = await writeFile(dir, newName, file);
+            if ((await copy.getFile()).size !== file.size) throw new Error("the copy came out a different size");
+          } catch (e) {
+            // Don't leave half a file behind under the new name.
+            try { await dir.removeEntry(newName); } catch (e2) { /* nothing to clean up */ }
+            throw e;
+          }
           await dir.removeEntry(oldName);
         }
         var moved = await dir.getFileHandle(newName);
@@ -1752,12 +1944,18 @@
     });
 
     $("#unusedGrid").addEventListener("click", function (e) {
+      var del = e.target.closest(".tile-del");
+      if (del) { deleteUnused([del.dataset.del]); return; }
       var tile = e.target.closest(".tile");
       if (tile) addFromFolder([tile.dataset.src]);
     });
     $("#addAllUnused").addEventListener("click", function (e) {
       e.preventDefault();
       addFromFolder($$(".tile", $("#unusedGrid")).map(function (t) { return t.dataset.src; }));
+    });
+    $("#delAllUnused").addEventListener("click", function (e) {
+      e.preventDefault();
+      deleteUnused($$(".tile", $("#unusedGrid")).map(function (t) { return t.dataset.src; }));
     });
 
     $("#addBtn").addEventListener("click", function () { $("#filePick").click(); });

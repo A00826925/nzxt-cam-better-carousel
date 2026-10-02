@@ -153,6 +153,7 @@
         // Force a style flush so the fade-in transition runs.
         void p.el.offsetWidth;
         p.el.classList.add("ks-on");
+        stage.startPan(p.el, p.item); // no-op unless the item has a second framing point
         if (prev) {
           prev.el.classList.remove("ks-on");
           var fade = Math.max(0, stage.settings.transitionMs || 0);

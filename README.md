@@ -11,6 +11,7 @@ nothing), managed from a visual editor, so you never have to touch code.
 - Overlays: temperatures, analog clock (with temps under the hands), digital clock, or a quad of four
   readings, per item
 - Crop and zoom each item by dragging it in a round preview of the screen
+- Optional slow pan: give any item two framings and it drifts between them at your chosen speed
 - Crossfades between items, with the next one preloaded so there are no black flashes
 - Remote control from the editor: previous, next, jump to an item, pause
 - NSFW tagging, with a switch that hides tagged items on the cooler instantly
@@ -51,7 +52,9 @@ From then on, keep the editor open while you tweak things: the cooler picks up s
 
 **Playlist (left).** Drag rows to reorder them, or press `Alt + ↑/↓`. Use the eye icon to skip an item
 without deleting it. Ctrl/Shift-click selects several rows so you can change them all at once. Files in
-`media/` that aren't in the playlist are listed at the bottom, ready to add.
+`media/` that aren't in the playlist are listed at the bottom: click one to add it, hover it and click
+the **×** to delete it from the folder, or use **Delete all…** to clear them out. Deleting asks first and
+can't be undone.
 
 **Preview (centre).** Shows exactly what the cooler shows, overlay included. Drag the picture to reposition
 it, scroll to zoom, double-click to reset. **Play playlist** runs the real carousel in the preview; tick
@@ -60,7 +63,12 @@ it, scroll to zoom, double-click to reset. **Play playlist** runs the real carou
 **Item tab (right):**
 
 - How long an image or GIF stays up, or how many times a video plays
-- Fill or fit, zoom, and focus point
+- Fill or fit, zoom, focus point, and rotation (which spins about the middle, so the round
+  screen stays filled at any angle)
+- **Pan**: turn it on and the item gets a second framing. The **Point A / Point B**
+  buttons choose which one the zoom, X, Y and Rotate controls — and dragging in the preview — apply to, and
+  **Speed** is how many seconds one pass takes. It drifts A → B → A for as long as the item is up.
+  **Preview** plays the motion in the editor.
 - Overlay: none, temps, clock, digital or quad, plus how much to dim the picture behind it and an optional text color
 - NSFW tag, and whether the item is in the rotation at all
 - Rename the file (pencil icon, `F2`, or double-click a name). This renames the actual file in `media/`.
@@ -79,7 +87,7 @@ it, scroll to zoom, double-click to reset. **Play playlist** runs the real carou
 - **‖** pauses on the current item (videos loop) until you resume
 - **NSFW** shows or hides items tagged NSFW
 
-They reach the cooler within about a second. Turning NSFW off while a tagged item is on screen takes it down
+They reach the cooler within about half a second. Turning NSFW off while a tagged item is on screen takes it down
 straight away. NSFW is off by default, and it stays off if anything is missing or unreadable.
 
 **Shortcuts:** `Ctrl+S` save · `Ctrl+Z` / `Ctrl+Y` undo/redo · `Delete` remove · `Ctrl+D` duplicate ·
@@ -134,7 +142,8 @@ window.CAROUSEL_CONFIG = {
   "settings": { "title": "NZXT", "tempUnit": "C", "transitionMs": 600 },
   "items": [
     {"src":"media/clip.mp4","plays":3,"overlay":"clock","dim":40,"zoom":100,"x":50,"y":15},
-    {"src":"media/pic.gif","duration":60,"overlay":"temps","dim":20,"zoom":120,"x":50,"y":50,"nsfw":true}
+    {"src":"media/pic.gif","duration":60,"overlay":"temps","dim":20,"zoom":120,"x":50,"y":50,"nsfw":true},
+    {"src":"media/wide.jpg","duration":30,"overlay":"none","zoom":140,"x":20,"y":50,"pan":true,"zoom2":140,"x2":80,"y2":50,"panSec":12}
   ]
 };
 ```
@@ -148,6 +157,10 @@ window.CAROUSEL_CONFIG = {
 | `dim` | darkening behind the overlay, 0–100 % |
 | `zoom` | 100 = no zoom |
 | `x`, `y` | focus point in % (0 0 = top-left), also the zoom anchor |
+| `rotate` | degrees, -180 to 180 (default 0); turns about the middle of the screen |
+| `pan` | `true` drifts between the two framings below |
+| `zoom2`, `x2`, `y2`, `rotate2` | the second framing; they default to the first one |
+| `panSec` | seconds for one pass between them (default 8) |
 | `fit` | `"contain"` shows the whole picture; the default fills the screen |
 | `color` | text color for this item's overlay |
 | `enabled` | `false` keeps the item but skips it |

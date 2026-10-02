@@ -183,6 +183,10 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 0; bo
 .check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .check input { accent-color: var(--accent); margin: 0; }
 
+/* Pan: the A/B point picker and its preview button sit on one row. */
+.pan-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 0 10px; }
+.pan-head .btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
 .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line-2); }
 .seg button {
   height: 26px;
@@ -395,6 +399,30 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 0; bo
 .unused[open] summary::before { transform: rotate(90deg); }
 .unused summary > span { flex: 1; }
 .unused-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; padding: 0 16px 14px; max-height: 220px; overflow-y: auto; }
+/* Unused-media tile: the tile adds the file, the corner × deletes it from the folder. */
+.tile-wrap { position: relative; display: flex; }
+.tile-wrap .tile { flex: 1; min-width: 0; }
+.tile-del {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  display: none;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  background: var(--panel-3);
+  color: var(--danger);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+.tile-wrap:hover .tile-del, .tile-del:focus-visible { display: grid; }
+.tile-del:hover { background: rgba(248, 113, 113, 0.18); border-color: rgba(248, 113, 113, 0.5); }
+
 .tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 4px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--muted); font: inherit; font-size: 11px; cursor: pointer; }
 .tile:hover { background: var(--panel-3); border-color: var(--line-2); color: var(--text); }
 .tile .thumb { width: 48px; height: 48px; }
@@ -549,7 +577,9 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 0; bo
 
 .num-unit { display: inline-flex; align-items: center; border: 1px solid var(--line-2); border-radius: 7px; background: var(--bg); overflow: hidden; }
 .num-unit input { border: 0; border-radius: 0; width: 64px; padding-right: 2px; background: transparent; text-align: right; }
-.num-unit span { padding: 0 9px 0 3px; color: var(--faint); font-size: 12px; }
+/* min-width keeps a narrow unit (°) the same overall width as a wide one (%), so the
+   number boxes down a column of slider rows still line up on the right. */
+.num-unit span { padding: 0 9px 0 3px; min-width: 22px; color: var(--faint); font-size: 12px; }
 
 .slider-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
 .slider-row > label { color: var(--muted); }

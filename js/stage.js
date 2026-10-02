@@ -12,6 +12,8 @@
 
   var OVERLAYS = ["none", "temps", "clock", "digital", "quad"];
   var DEFAULT_DIM = { none: 0, temps: 20, clock: 40, digital: 35, quad: 35 };
+  var DEFAULT_PAN_SEC = 8; // seconds for one pass between an item's two framing points
+  var PAN_STEP_MS = 33;    // pan updates per frame at the ~30 fps the cooler runs at
 
   var DEFAULT_SETTINGS = {
     title: "NZXT",
@@ -60,6 +62,8 @@
   }
   function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
 
+  function nowMs() { return typeof performance !== "undefined" && performance.now ? performance.now() : Date.now(); }
+
   function withDefaults(settings) {
     var out = {};
     for (var k in DEFAULT_SETTINGS) out[k] = DEFAULT_SETTINGS[k];
@@ -77,7 +81,17 @@
     it.zoom = clamp(num(raw.zoom, 100), 25, 1000);
     it.x = clamp(num(raw.x, 50), 0, 100);
     it.y = clamp(num(raw.y, 50), 0, 100);
+    it.rotate = clamp(num(raw.rotate, 0), -180, 180);
     it.fit = raw.fit === "contain" ? "contain" : "cover";
+    // Optional second framing point: the picture drifts between the two, back and forth.
+    it.pan = raw.pan === true;
+    if (it.pan) {
+      it.zoom2 = clamp(num(raw.zoom2, it.zoom), 25, 1000);
+      it.x2 = clamp(num(raw.x2, it.x), 0, 100);
+      it.y2 = clamp(num(raw.y2, it.y), 0, 100);
+      it.rotate2 = clamp(num(raw.rotate2, it.rotate), -180, 180);
+      it.panSec = clamp(num(raw.panSec, DEFAULT_PAN_SEC), 0.5, 300);
+    }
     it.enabled = raw.enabled !== false;
     it.nsfw = raw.nsfw === true;
     if (isVideo(it.src)) it.plays = Math.max(1, Math.round(num(raw.plays, 1)));
@@ -356,13 +370,102 @@
       renderSensors();
     }
 
-    function frame(el, item) {
-      var x = clamp(num(item.x, 50), 0, 100), y = clamp(num(item.y, 50), 0, 100);
-      var z = num(item.zoom, 100) / 100;
-      el.style.objectFit = item.fit === "contain" ? "contain" : "cover";
+    function frameAt(el, fit, zoom, x, y, rot) {
+      var z = zoom / 100;
+      el.style.objectFit = fit === "contain" ? "contain" : "cover";
       el.style.objectPosition = x + "% " + y + "%";
-      el.style.transformOrigin = x + "% " + y + "%";
-      el.style.transform = z !== 1 ? "scale(" + z + ")" : "";
+      if (!rot) {
+        el.style.transformOrigin = x + "% " + y + "%";
+        el.style.transform = z !== 1 ? "scale(" + z + ")" : "";
+        return;
+      }
+      // Turning happens about the middle, so the picture spins in place instead of swinging
+      // around the focus point. That alone keeps the round screen covered at any angle: the
+      // circle the cooler shows doesn't change when you turn it about its own centre, so a
+      // picture that filled it still fills it — no extra zoom needed.
+      //
+      // Zoom then pulls towards the focus point, but towards where that point has ended up
+      // after the turn. Anchoring at its old spot could put the anchor outside the turned
+      // picture (a corner focus point lands outside), and zooming about a point outside can
+      // pull an edge into view. At 0° the two are the same place, so nothing changes for
+      // items that aren't turned.
+      var c = SIZE / 2;
+      var rad = (rot * Math.PI) / 180, cs = Math.cos(rad), sn = Math.sin(rad);
+      var dx = (x / 100) * SIZE - c, dy = (y / 100) * SIZE - c;
+      var ax = c + (dx * cs - dy * sn), ay = c + (dx * sn + dy * cs);
+      el.style.transformOrigin = "0 0";
+      el.style.transform =
+        "translate(" + ax + "px," + ay + "px) scale(" + z + ") translate(" + -ax + "px," + -ay + "px) " +
+        "translate(" + c + "px," + c + "px) rotate(" + rot + "deg) translate(" + -c + "px," + -c + "px)";
+    }
+
+    function frame(el, item) {
+      frameAt(el, item.fit, num(item.zoom, 100), clamp(num(item.x, 50), 0, 100),
+              clamp(num(item.y, 50), 0, 100), num(item.rotate, 0));
+    }
+
+    // ---------- panning between two framing points ----------
+
+    var pan = null;    // { el, fit, a, b, ms, at }
+    var panTimer = 0;
+
+    /** The two points to travel between, or null if there is nothing to animate. */
+    function panPoints(item) {
+      if (!item || !item.pan) return null;
+      var a = {
+        zoom: num(item.zoom, 100),
+        x: clamp(num(item.x, 50), 0, 100),
+        y: clamp(num(item.y, 50), 0, 100),
+        rot: num(item.rotate, 0)
+      };
+      var b = {
+        zoom: num(item.zoom2, a.zoom),
+        x: clamp(num(item.x2, a.x), 0, 100),
+        y: clamp(num(item.y2, a.y), 0, 100),
+        rot: num(item.rotate2, a.rot)
+      };
+      if (a.zoom === b.zoom && a.x === b.x && a.y === b.y && a.rot === b.rot) return null; // identical
+      return { a: a, b: b, sec: clamp(num(item.panSec, DEFAULT_PAN_SEC), 0.5, 300) };
+    }
+
+    function stopPan() {
+      clearInterval(panTimer);
+      panTimer = 0;
+      pan = null;
+    }
+
+    /**
+     * Drift `el` back and forth between the item's two framing points, for as long as it is up.
+     * The framing is recomputed on a timer rather than left to requestAnimationFrame or a CSS
+     * transition: neither one animates in a hidden page, and the cooler's page is rendered
+     * off-screen. Timers keep running there (the app disables background throttling).
+     * Returns false (leaving the element on point A) when the item doesn't pan.
+     */
+    function startPan(el, item) {
+      stopPan();
+      var p = panPoints(item);
+      if (!el || !p) return false;
+      pan = { el: el, fit: item.fit, a: p.a, b: p.b, ms: p.sec * 1000, t0: nowMs() };
+      panTimer = setInterval(stepPan, PAN_STEP_MS);
+      stepPan();
+      return true;
+    }
+
+    /** Position for right now: ping-pong A→B→A, eased so the turns aren't abrupt. */
+    function stepPan() {
+      if (!pan) return;
+      if (!pan.el.isConnected) { stopPan(); return; }
+      var k = ((nowMs() - pan.t0) / pan.ms) % 2;
+      if (k > 1) k = 2 - k;
+      var e = k * k * (3 - 2 * k);
+      frameAt(
+        pan.el,
+        pan.fit,
+        pan.a.zoom + (pan.b.zoom - pan.a.zoom) * e,
+        pan.a.x + (pan.b.x - pan.a.x) * e,
+        pan.a.y + (pan.b.y - pan.a.y) * e,
+        pan.a.rot + (pan.b.rot - pan.a.rot) * e
+      );
     }
 
     /** Create (but do not attach) the element for an item. */
@@ -386,6 +489,7 @@
 
     function disposeMedia(el) {
       if (!el) return;
+      if (pan && pan.el === el) stopPan();
       if (el.tagName === "VIDEO") {
         el.pause();
         el.removeAttribute("src");
@@ -405,6 +509,7 @@
     function destroy() {
       clearTimeout(tickTimer);
       tickTimer = 0;
+      stopPan();
       if (root.parentNode) root.parentNode.removeChild(root);
     }
 
@@ -418,6 +523,10 @@
       setOverlay: setOverlay,
       setData: setData,
       frame: frame,
+      frameAt: frameAt,
+      startPan: startPan,
+      stopPan: stopPan,
+      panPoints: panPoints,
       createMedia: createMedia,
       disposeMedia: disposeMedia,
       fit: fit,
@@ -429,6 +538,7 @@
     SIZE: SIZE,
     OVERLAYS: OVERLAYS,
     DEFAULT_DIM: DEFAULT_DIM,
+    DEFAULT_PAN_SEC: DEFAULT_PAN_SEC,
     DEFAULT_SETTINGS: DEFAULT_SETTINGS,
     SENSORS: SENSORS,
     isVideo: isVideo,

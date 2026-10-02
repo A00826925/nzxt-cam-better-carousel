@@ -60,6 +60,7 @@
         <summary>
           <span><b id="unusedCount">0</b> files in <code>media/</code> aren't in the playlist</span>
           <button class="btn small" id="addAllUnused" type="button">Add all</button>
+          <button class="btn small danger" id="delAllUnused" type="button">Delete all…</button>
         </summary>
         <div class="unused-grid" id="unusedGrid"></div>
       </details>
@@ -198,6 +199,25 @@
               <button type="button" data-value="cover" title="Fill the screen, cropping edges">Fill</button>
               <button type="button" data-value="contain" title="Show the whole image with black bars">Fit</button>
             </div>
+            <div class="field tag-row" id="panRow">
+              <label for="fPan">Pan <span class="muted small">— drift between two framings</span></label>
+              <label class="switch"><input id="fPan" type="checkbox" data-item="pan"><span></span></label>
+            </div>
+            <div id="panOpts" hidden>
+              <div class="pan-head">
+                <div class="seg" id="panPoint">
+                  <button type="button" data-value="a" title="Edit the framing it starts from">Point A</button>
+                  <button type="button" data-value="b" title="Edit the framing it drifts to">Point B</button>
+                </div>
+                <button class="btn small" id="panPreview" type="button">Preview pan</button>
+              </div>
+              <div class="slider-row">
+                <label>Speed</label>
+                <input type="range" min="1" max="40" step="1" data-item="panSec">
+                <div class="num-unit"><input type="number" min="1" max="300" step="1" data-item="panSec"><span>s</span></div>
+              </div>
+              <p class="muted small">Seconds for one pass. It drifts A → B → A for as long as the item is up.</p>
+            </div>
             <div class="slider-row">
               <label>Zoom</label>
               <input type="range" min="100" max="400" step="1" data-item="zoom">
@@ -221,6 +241,11 @@
                   <div class="num-unit"><input type="number" min="0" max="100" step="1" data-item="y"><span>%</span></div>
                 </div>
               </div>
+            </div>
+            <div class="slider-row">
+              <label>Rotate</label>
+              <input type="range" min="-180" max="180" step="1" data-item="rotate">
+              <div class="num-unit"><input type="number" min="-180" max="180" step="1" data-item="rotate"><span>°</span></div>
             </div>
           </section>
 

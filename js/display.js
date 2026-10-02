@@ -2,7 +2,7 @@
  * Kraken Carousel — cooler display entry point (index.html).
  * Optional URL params: ?item=5 starts at the 5th enabled item (handy for testing).
  *
- * Remote control: the editor writes remote.js next to this page; it is re-read every second and
+ * Remote control: the editor writes remote.js next to this page; it is re-read twice a second and
  * any new commands (next / prev / show a given file / pause / resume) are applied to the running
  * carousel. Pausing is not remembered across a restart of the page: it starts playing again.
  * remote.js also carries the NSFW switch as plain state (`nsfw: true|false`), read on every poll —
@@ -12,7 +12,7 @@
   "use strict";
 
   var RELOAD_EVERY = 15000; // re-read config.js so saves from the editor show up without restarting CAM
-  var REMOTE_EVERY = 1000;  // how often to look for editor commands in remote.js
+  var REMOTE_EVERY = 500;   // how often to look for editor commands in remote.js
 
   var host = document.getElementById("display");
   var stage = KrakenStage.create(host, window.CAROUSEL_CONFIG && window.CAROUSEL_CONFIG.settings);
