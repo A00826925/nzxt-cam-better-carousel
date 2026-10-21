@@ -55,6 +55,21 @@ Then:
    Approve the UAC prompt once. This creates a Task Scheduler entry that starts Kraken Host at login with
    admin rights (needed for the CPU temperature) without asking every time, and starts it right away.
 
+### A double-clickable executable
+
+```
+npm run build-exe
+```
+
+This writes `dist/KrakenHost-win32-x64/KrakenHost.exe` — a self-contained build (~340 MB; it carries
+its own copy of Electron) that you can double-click instead of using npm. It still reads the carousel
+from this repo, so keep it where it is: it finds `index.html` by looking upwards from itself.
+
+Two things to know. Started by double-clicking it runs as you, not as admin, so the **CPU temperature
+shows "–"** — right-click and **Run as administrator** for that, or let the startup task run it. And
+once built, `npm run install-startup` uses this executable instead of Electron from `node_modules`,
+so startup no longer depends on `npm install`; re-run that command to switch an existing task over.
+
 To just try it without installing anything: `npm start` (the CPU temperature needs it to run as admin).
 
 To remove it from startup: `npm run uninstall-startup`, then turn CAM's startup back on if you want CAM back.
@@ -101,6 +116,7 @@ lib/q565.js           frame compression + rotation
 lib/sensors.js        runs the sensor helper
 sensors/              the sensor helper (C#, LibreHardwareMonitorLib)
 scripts/              install / uninstall the startup task
+dist/                 built executable ('npm run build-exe', not committed)
 tools/stream-test.js  stand-alone test pattern for the USB layer (CAM must be closed)
 ```
 

@@ -222,6 +222,18 @@
   opacity: 0.7;
 }
 
+/* Mini overlay: the clock's small readout on its own, centred on the screen. */
+.ks-mini-only {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ks-mini-only .ks-mini {
+  margin-top: 0;
+  gap: 56px;
+  font-size: 46px;
+}
+
 /* Sensor readout below the centre of the analog clock hands. */
 .ks-clock-mini {
   position: absolute;

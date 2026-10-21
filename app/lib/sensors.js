@@ -10,7 +10,9 @@ const path = require('path');
 const EXE = path.join(__dirname, '..', 'sensors', 'bin', 'publish', 'KrakenSensors.exe');
 
 class Sensors {
-  constructor(log) {
+  /** `exe` overrides where the helper lives, which a packaged build has to do. */
+  constructor(log, exe) {
+    this.exe = exe || EXE;
     this.log = log || (() => {});
     this.latest = null;
     this.child = null;
@@ -19,12 +21,12 @@ class Sensors {
   }
 
   start() {
-    if (!fs.existsSync(EXE)) {
-      this.log(`sensor helper not built (${EXE}); CPU/GPU readings unavailable — see README`);
+    if (!fs.existsSync(this.exe)) {
+      this.log(`sensor helper not built (${this.exe}); CPU/GPU readings unavailable — see README`);
       return;
     }
     this.stopped = false;
-    const child = spawn(EXE, [], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+    const child = spawn(this.exe, [], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
     this.child = child;
     let buf = '';
     child.stdout.on('data', (chunk) => {

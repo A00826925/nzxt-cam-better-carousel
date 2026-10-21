@@ -10,8 +10,8 @@ with its own timing and its own overlay (CPU/GPU temperatures, an analog clock, 
 nothing), managed from a visual editor, so you never have to touch code.
 
 - Unlimited images, GIFs and videos, each with its own duration or number of plays
-- Overlays: temperatures, analog clock (with temps under the hands), digital clock, or a quad of four
-  readings, per item
+- Overlays: temperatures, analog clock (with temps under the hands), digital clock, a quad of four
+  readings, or just a small two-sensor line, per item
 - Crop and zoom each item by dragging it in a round preview of the screen
 - Optional slow pan: give any item two framings and it drifts between them at your chosen speed
 - Crossfades between items, with the next one preloaded so there are no black flashes
@@ -71,13 +71,14 @@ it, scroll to zoom, double-click to reset. **Play playlist** runs the real carou
   buttons choose which one the zoom, X, Y and Rotate controls — and dragging in the preview — apply to, and
   **Speed** is how many seconds one pass takes. It drifts A → B → A for as long as the item is up.
   **Preview** plays the motion in the editor.
-- Overlay: none, temps, clock, digital or quad, plus how much to dim the picture behind it and an optional text color
+- Overlay: none, temps, clock, digital, quad or mini, plus how much to dim the picture behind it and an optional text color
 - NSFW tag, and whether the item is in the rotation at all
 - Rename the file (pencil icon, `F2`, or double-click a name). This renames the actual file in `media/`.
 
 **Display settings tab:**
 
 - Title text, which two sensors to show (CPU, GPU or liquid temperature, CPU or GPU load), and °C/°F
+  — used by the temps and mini overlays, and under the clock hands
 - Quad overlay: which reading goes in each of its four corners
 - Clock options: tick or sweep second hand, temps under the hands, 12/24h, date
 - Colors, crossfade length, default image duration, and muting videos
@@ -155,7 +156,7 @@ window.CAROUSEL_CONFIG = {
 | `src` | path relative to this folder |
 | `duration` | seconds on screen (images and GIFs) |
 | `plays` | how many times a video plays before moving on |
-| `overlay` | `none`, `temps`, `clock`, `digital` or `quad` |
+| `overlay` | `none`, `temps`, `clock`, `digital`, `quad` or `mini` |
 | `dim` | darkening behind the overlay, 0–100 % |
 | `zoom` | 100 = no zoom |
 | `x`, `y` | focus point in % (0 0 = top-left), also the zoom anchor |

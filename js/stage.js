@@ -10,8 +10,8 @@
   var VIDEO_RE = /\.(mp4|webm|mov|m4v|ogv)$/i;
   var MEDIA_RE = /\.(mp4|webm|mov|m4v|ogv|gif|jpe?g|png|webp|avif|bmp|svg)$/i;
 
-  var OVERLAYS = ["none", "temps", "clock", "digital", "quad"];
-  var DEFAULT_DIM = { none: 0, temps: 20, clock: 40, digital: 35, quad: 35 };
+  var OVERLAYS = ["none", "temps", "clock", "digital", "quad", "mini"];
+  var DEFAULT_DIM = { none: 0, temps: 20, clock: 40, digital: 35, quad: 35, mini: 15 };
   var DEFAULT_PAN_SEC = 8; // seconds for one pass between an item's two framing points
   var PAN_STEP_MS = 33;    // pan updates per frame at the ~30 fps the cooler runs at
 
@@ -266,13 +266,18 @@
       return { val: val, label: label };
     });
 
-    var layers = { temps: temps, clock: clock, digital: digital, quad: quad };
+    // Mini overlay: the same small readout that sits under the clock hands, on its own.
+    var mini = h("div", "ks-ov ks-mini-only");
+    mini.appendChild(makeMini());
+
+    var layers = { temps: temps, clock: clock, digital: digital, quad: quad, mini: mini };
     root.appendChild(media);
     root.appendChild(dim);
     root.appendChild(temps);
     root.appendChild(clock);
     root.appendChild(digital);
     root.appendChild(quad);
+    root.appendChild(mini);
     container.appendChild(root);
 
     function renderSensors() {

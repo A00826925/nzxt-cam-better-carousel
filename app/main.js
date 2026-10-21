@@ -16,9 +16,31 @@ const { Kraken } = require('./lib/kraken');
 const q565 = require('./lib/q565');
 const { Sensors } = require('./lib/sensors');
 
-const ROOT = path.resolve(__dirname, '..');   // the carousel folder: index.html, editor.html, media/
+/**
+ * Find the carousel folder (the one with index.html, editor.html and media/).
+ * Running from source that is simply the parent of app/, but a packaged build sits deeper —
+ * app/dist/KrakenHost-win32-x64/KrakenHost.exe — and its __dirname is inside the bundle. So
+ * walk up from both the code and the running exe and take the first folder that looks right.
+ */
+function findRoot() {
+  var starts = [__dirname, path.dirname(process.execPath)];
+  for (var i = 0; i < starts.length; i++) {
+    var dir = starts[i];
+    for (var up = 0; up < 6; up++) {
+      if (fs.existsSync(path.join(dir, 'index.html')) && fs.existsSync(path.join(dir, 'js', 'stage.js'))) return dir;
+      var parent = path.dirname(dir);
+      if (parent === dir) break;
+      dir = parent;
+    }
+  }
+  return path.resolve(__dirname, '..'); // fall back to the layout we ship in
+}
+
+const ROOT = findRoot();                      // the carousel folder: index.html, editor.html, media/
 const PAGE = path.join(ROOT, 'index.html');
 const EDITOR = path.join(ROOT, 'editor.html');
+// The sensor helper is built into app/sensors/, which stays put whether or not this is packaged.
+const SENSORS_EXE = path.join(ROOT, 'app', 'sensors', 'bin', 'publish', 'KrakenSensors.exe');
 // Until a cooler is connected; then the window follows its resolution. The env var is a test knob.
 const DEFAULT_SIZE = Number(process.env.KRAKEN_HOST_TEST_SIZE) || 640;
 const FPS = 30;                // ask Chromium for at most this many frames; the cooler tops out ~28
@@ -263,7 +285,7 @@ if (!app.requestSingleInstanceLock()) {
     log(`Kraken Host starting, page ${PAGE}`);
     if (!fs.existsSync(PAGE)) log('WARNING: index.html not found next to the app folder');
     tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'assets', 'icon.png')));
-    sensors = new Sensors(log);
+    sensors = new Sensors(log, SENSORS_EXE);
     sensors.start();
     updateTray();
     createWindow();
